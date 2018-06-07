@@ -1,0 +1,40 @@
+<script src="../bower_components/page/page.js"></script>
+<script>
+  window.addEventListener('WebComponentsReady', function() {
+
+    // Removes end / from app.baseUrl which page.base requires for production
+    if (window.location.port === '') {  // if production
+      page.base(appy.baseUrl.replace(/\/$/, ''));
+    }
+
+    // Routes
+    page('/', function() {
+      page.redirect('/home')
+    });
+
+    page('/:page', function(data) {
+      appy.$.app.$.pager.pageId = data.params.page;
+    });
+
+    page({
+      hashbang: false
+    });
+
+    
+
+  });
+
+  function randomString(length) {
+    var chars = '0123456789abcdefghiklmnopqrstuvwxyz'.split('');
+
+    if (! length) {
+        length = Math.floor(Math.random() * chars.length);
+    }
+
+    var str = '';
+    for (var i = 0; i < length; i++) {
+        str += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return str;
+  }
+</script>

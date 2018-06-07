@@ -1,0 +1,83 @@
+
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+
+<dom-module id="felt-background">
+
+  <style>
+    :host {
+      }
+
+
+    div {
+      position: absolute;
+      top:0;bottom:0;left:0;right:0;
+      -webkit-transition: opacity 1s ease-in;
+      -moz-transition: opacity 1s ease-in;
+      -o-transition: opacity 1s ease-in;
+      transition: opacity 1s ease-in;
+    }
+
+    .see{
+      opacity: 0;
+    }
+    .opa{
+      opacity: 1;
+    }
+  </style>
+  <style include="iron-flex iron-flex-alignment"></style>
+
+  <template>
+    
+    <div style$="{{bgImage1}}" class$="{{o1}}"></div>
+    <div class="fit" style$="{{bgImage2}}" class$="{{o2}}"></div>
+
+  </template>
+
+  <script>
+
+    Polymer({
+
+      is: 'felt-background',
+
+      properties: {
+        theme: {
+          type: Number,
+          value: 0,
+          observer: 'themeChange'
+        }
+      },
+
+      ready: function() {
+        this.bList=['black-felt','3px-tile','asfalt-dark','black-thread','black-thread-light','dark-mosaic','pyramid','cartographer','cubes','checkered-pattern','carbon-copy','dimension','use-your-illusion','buried'];
+        this.oList=[0,0,2,0,5,0,3,0,5,0,0,0,0,0];
+        this.bgImage1='background: url(/images/black-felt.png) transparent top center repeat;';
+        this.bgImage2='background: url(/images/3px-tile.png) transparent top center repeat;';
+        this.o1='opa';
+        this.o2='see';
+        this.isReady=true;
+      },
+
+      themeChange: function(){
+        if(this.isReady) {
+          this.theme=this.theme%14;
+          if(this.theme%2===0) {
+            this.bgImage1='background: url(/images/'+this.bList[this.theme]+'.png) rgba(0,0,0,0.'+this.oList[this.theme]+') top center repeat;';
+              this.o2 = 'see';
+              this.o1 = 'opa';
+          }
+          else{
+            this.bgImage2='background: url(/images/'+this.bList[this.theme]+'.png) rgba(0,0,0,0.'+this.oList[this.theme]+') top center repeat;';
+              this.o1 = 'see';
+              this.o2 = 'opa';
+          }
+        }
+      }
+
+    });
+
+  </script>
+
+</dom-module>

@@ -1,0 +1,315 @@
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../bower_components/neon-animation/animations/fade-out-animation.html">
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+
+<dom-module id="felt-app">
+
+  <link rel="import" type="css" href="felt-app.css">
+  <style include="iron-flex iron-flex-alignment"></style>
+  <template>
+
+      <paper-dialog id="pagedialog" with-backdrop
+                  entry-animation="scale-up-animation"
+                  exit-animation="fade-out-animation">
+        <felt-pager id="pager" datas="{{datas}}" socket="{{socket}}" on-ws="gotWs" class="vertical layout start-justified" remote-origin="{{remoteOrigin}}"></felt-pager>
+      </paper-dialog>
+
+      <paper-dialog id="logoutdialog" with-backdrop
+                  entry-animation="scale-up-animation"
+                  exit-animation="fade-out-animation">
+        <div class="vertical layout center">
+          <div>Sign out of account <span style="font-weight:bold;">{{userName}}</span>?</div>
+          <paper-button class="btn" on-tap="logout">Log Out</paper-button>
+        </div>
+      </paper-dialog>
+
+      <paper-dialog id="overwriter" with-backdrop
+                entry-animation="scale-up-animation"
+                exit-animation="fade-out-animation">
+        <div class="vertical layout center">
+          <div>Overwrite drawing <span style="font-weight:bold;">{{overwriteDrawing}}</span>?</div>
+          <paper-button class="btn" on-tap="okoverwrite">Overwrite</paper-button>
+          <paper-button class="btn" on-tap="cancel">Cancel</paper-button>
+        </div>
+      </paper-dialog>
+
+      <paper-dialog id="loader" with-backdrop
+                entry-animation="scale-up-animation"
+                exit-animation="fade-out-animation">
+        <div class="vertical layout">
+          <felt-loader-popup id="loaderpopup" on-popload="load" on-delete="delete"></felt-loader-popup>
+        </div>
+      </paper-dialog>
+
+    <felt-background theme="{{i}}" class="fit">
+    </felt-background>
+
+    <felt-intro></felt-intro>
+
+      <paper-drawer-panel id="mainDrawerPanel" class="main-drawer-panel" responsive-width="980px"
+          drawer-width="[[_computeListWidth(_isMobile)]]" drawer-toggle-attribute="list-toggle"
+          narrow="{{_isMobile}}" disable-swipe >
+
+        <paper-header-panel class="list-panel" drawer>
+
+          <!-- List Toolbar -->
+          <paper-toolbar>
+            <div class="horizontal layout justified center drawer-icons">
+              <div>
+                <felt-logo on-tap="logoTap" id="logoicon"></felt-logo>
+              </div>
+              <iron-icon id="forward" class="user-icon" icon="felt-icons:arrow-back" on-tap="_listTapped"></iron-icon>
+              <div id="user-main">
+                <iron-icon icon="felt-icons:note-add" class="user-icon" on-tap="newPage"></iron-icon>
+                <iron-icon on-tap="openauth" class="user-icon" icon="felt-icons:account-circle"></iron-icon>
+              </div>
+            </div>
+          </paper-toolbar>
+
+          <!--main menu-->
+          <felt-menu class="fit" size="{{size}}" color="{{color}}" tool="{{tool}}" font="{{font}}" stroke="{{stroke}}" outline="{{outline}}"></felt-menu>
+
+        </paper-header-panel>
+
+        <div main>
+
+          <paper-drawer-panel id="rightdrawer" drawer-width="[[UserWidth]]" drawer-toggle-attribute="paper-drawer-right" right-drawer disable-swipe force-narrow>
+
+            <paper-header-panel drawer>
+              <paper-toolbar>
+                <div class="horizontal layout justified center drawer-icons">
+                  <paper-button on-tap="openlogout" class="horizontal layout center" id="avatarz" style$="[[computeAvatarz(userName)]]" disabled="[[!userName]]">
+                    <img id="avatar" src="{{pic}}" /><span style="font-weight:normal;">{{userName}}</span>
+                  </paper-button>
+                  <iron-icon class="user-icon" icon="felt-icons:arrow-forward" on-tap="openauth"></iron-icon>
+                </div>
+              </paper-toolbar>
+              <felt-auth socket="{{socket}}" user-name="{{userName}}" pic="{{pic}}" class="vertical layout start-justified center" remote-origin="{{remoteOrigin}}" id="authy" on-overwrite="overwrite" on-msg="gotMsg" on-loader="loader" client-origin="{{clientOrigin}}" remote-scheme="{{remoteScheme}}"></felt-auth>
+            </paper-header-panel>
+            
+
+            <paper-header-panel class="content-panel" id="cp" main>
+              <!-- Main Toolbar -->
+              <paper-toolbar id="content-toolbar">
+                <div class="horizontal layout justified center drawer-icons">
+                  <iron-icon class="user-icon" icon="felt-icons:menu" list-toggle></iron-icon>
+                  <div id="user-mobile">
+                    <iron-icon icon="felt-icons:note-add" class="user-icon" on-tap="newPage"></iron-icon>
+                    <iron-icon on-tap="openauth" class="user-icon" icon="felt-icons:account-circle"></iron-icon>
+                  </div>
+                </div>
+              </paper-toolbar>
+
+              <!-- Main Content -->
+              <div class="content" id="maincontent">
+                <felt-material id="feltshadow" elevation="5" narrow="{{_isPhone}}" responsive-width="640px">
+                  <felt-canvas id="feltcanvas" tool="{{tool}}" size="{{size}}" color="{{color}}" font="{{font}}" stroke="{{stroke}}" outline="{{outline}}" narrow="{{_isPhone}}" on-ratio-change="ratioChange" on-go="go" on-go-text="goText" socket="{{socket}}"></felt-canvas>
+                </felt-material>
+              </div>
+
+            </paper-header-panel>
+
+          </paper-drawer-panel>
+
+        </div>
+
+      </paper-drawer-panel>
+
+  </template>
+
+  <script>
+
+    Polymer({
+
+      is: 'felt-app',
+
+      properties: {
+
+        datas: Object,
+
+        remoteOrigin: {
+          type: String,
+          value: "freehandapi.uswest.appfog.ctl.io"
+        },
+
+        clientOrigin: {
+          type: String,
+          value: "www.freehand.online"
+        },
+
+        remoteScheme: {
+          type: String,
+          value: "http://"
+        }
+
+      },
+
+      computeAvatarz: function(userName) {
+        return userName ? 'opacity:1;' : 'opacity:0;'
+      },
+
+      _computeListWidth: function(isMobile) {
+        // when in mobile screen size, make the list be 100% width to cover the whole screen
+        //return isMobile ? '100%' : '320px';
+        return '320px'
+      },
+
+      _listTapped: function() {
+        this.$.mainDrawerPanel.closeDrawer();
+      },
+
+      newPage: function() {
+        this.$.pagedialog.open();
+      },
+
+      openauth: function() {
+        //this.$.authdialog.open();
+        this.$.rightdrawer.togglePanel()
+      },
+
+      go: function(e) {
+        var points = e.detail.points;
+        var pts = [];
+
+        for (var i=0; i<points.length; i++) {
+          pts.push(points[i].x);
+          pts.push(points[i].y);
+        }
+
+        this.datas={
+          tool: e.detail.tool,
+          points: pts,
+          size: e.detail.size,
+          color: e.detail.color,
+          stroke: e.detail.stroke
+        };
+
+      },
+
+      goText: function(e) {
+        var points = e.detail.points;
+        var pts = [];
+
+        for (var i=0; i<points.length; i++) {
+          pts.push(points[i].x);
+          pts.push(points[i].y);
+        }
+
+        this.datas = {
+          tool: e.detail.tool,
+          points: pts,
+          lines: e.detail.lines,
+          fs: e.detail.fs,
+          ff: e.detail.ff,
+          fc: e.detail.fc,
+          w: e.detail.w,
+          l: e.detail.l,
+          t: e.detail.t,
+        };
+        if(this._isMobile){
+          var scroller=this.$.cp.scroller;
+          scroller.scrollTop=0;
+          window.scroll(0,0);
+        }
+      },
+
+      gotWs: function(e) {
+        this.$.feltcanvas.gotWs(e.detail);
+      },
+
+      gotMsg: function(e) {
+        this.datas=e.detail
+        this.$.feltcanvas.gotWs(e.detail);
+      },
+
+      ratioChange: function(e){
+        var ratio = e.detail.ratio;
+        this.$.feltshadow.style.height=880*ratio+'px';
+      },
+
+      logoTap: function() {
+        this.i++;
+      },
+
+      ready: function() {
+        this.i=0;
+        if (window.innerWidth < 401) {
+          this.UserWidth = '100%'
+        } else {
+          this.UserWidth = '400px'
+        }
+      },
+
+      behaviors: [
+        Polymer.IronResizableBehavior
+      ],
+
+      listeners: {
+        'iron-resize': '_onIronResize'
+      },
+
+      _onIronResize: function() {
+        var width = window.innerWidth
+        if (width < 401) {
+          this.UserWidth='100%'
+        } else {
+          this.UserWidth='400px'
+        }
+        
+      },
+
+      logout: function() {
+        this.$.authy.logout()
+        this.$.logoutdialog.close()
+      },
+
+      openlogout: function() {
+        this.$.logoutdialog.open()
+      },
+
+      overwrite: function(e) {
+        this.overwriteDrawing=e.detail.title
+        this.overwriteIndex=e.detail.index
+        this.$.overwriter.open()
+      },
+      cancel: function() {
+        this.$.overwriter.close()
+      },
+      okoverwrite: function() {
+        this.$.authy.$.db.overwrite(this.overwriteDrawing,this.overwriteIndex)
+        this.cancel()
+      },
+
+      loader: function(e) {
+        this.$.loaderpopup.loadDrawing=e.detail.title
+        this.$.loaderpopup.loadIndex=e.detail.index
+        this.$.loader.open()
+      },
+
+      load: function(e) {
+        this.$.authy.load(e.detail)
+        this.$.loader.close()
+        this.$.rightdrawer.closeDrawer()
+      },
+
+      delete: function(e) {
+        this.$.loader.close()
+        this.$.authy.delete(e)
+      }
+
+    });
+
+  </script>
+
+</dom-module>

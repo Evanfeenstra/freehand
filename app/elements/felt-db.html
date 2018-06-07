@@ -1,0 +1,309 @@
+
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+
+
+<dom-module id="felt-db">
+
+ 
+  <template>
+
+
+  <!--retrieves session-->
+    <iron-ajax id="home"
+      handle-as="json"
+      on-response="homeRes"
+      with-credentials
+    ></iron-ajax>
+
+    <iron-ajax id="register"
+      handle-as="json"
+      on-response="registerRes"
+      method="POST"
+      content-type="application/x-www-form-urlencoded"
+      with-credentials
+    ></iron-ajax>
+
+    <iron-ajax id="login"
+      handle-as="json"
+      on-response="loginRes"
+      method="POST"
+      content-type="application/x-www-form-urlencoded"
+      with-credentials
+    ></iron-ajax>
+
+    <iron-ajax id="logout"
+      handle-as="json"
+      on-response="logoutRes"
+      method="POST"
+      content-type="application/x-www-form-urlencoded"
+      with-credentials
+    ></iron-ajax>
+
+    <iron-ajax id="oauth"
+      handle-as="json"
+      on-response="oauthRes"
+      with-credentials
+    ></iron-ajax>
+
+    <iron-ajax id="save"
+      handle-as="json"
+      on-response="saveRes"
+      method="POST"
+      content-type="application/x-www-form-urlencoded"
+      with-credentials
+    ></iron-ajax>
+
+    <iron-ajax id="overwrite"
+      handle-as="json"
+      on-response="overwriteRes"
+      method="POST"
+      content-type="application/x-www-form-urlencoded"
+      with-credentials
+    ></iron-ajax>
+
+    <iron-ajax id="loader"
+      handle-as="json"
+      on-response="loadRes"
+      method="POST"
+      content-type="application/x-www-form-urlencoded"
+      with-credentials
+    ></iron-ajax>
+
+    <iron-ajax id="delete"
+      handle-as="json"
+      on-response="deleteRes"
+      method="POST"
+      content-type="application/x-www-form-urlencoded"
+      with-credentials
+    ></iron-ajax>
+
+    
+
+  </template>
+
+
+  <script>
+
+    Polymer({
+
+      is: 'felt-db',
+
+      properties: {
+
+        user: {
+          type: Object,
+          notify: true
+        },
+
+        provider: String,
+
+        remoteOrigin: String,
+
+        drawings: {
+          type: Array,
+          notify: true
+        },
+
+        socket: String,
+
+        clientOrigin: String
+
+      },
+
+      ready: function() {
+        this.$.home.url=this.remoteScheme + this.remoteOrigin + '/auth'
+        this.$.home.generateRequest()
+      },
+
+      homeRes: function() {
+        r=this.$.home.lastResponse
+        if(r.Pic.length==0){
+          r.Pic="images/person.svg"
+        }
+        if(!r.Error){
+          var user={
+            username:r.Name,
+            provider:'password',
+            pic:r.Pic,
+          }
+          this.user=user
+          r.Drawings.splice(-1,1)
+          this.drawings = r.Drawings
+        }
+      },
+
+      login: function(obj) {
+        switch(this.provider) {
+          case "password":
+            this.$.login.body = {'username':obj.username,'password':obj.password}
+            this.$.login.url = this.remoteScheme + this.remoteOrigin + '/auth/login'
+            this.$.login.generateRequest()
+            break
+          case "google":
+            var url = this.remoteScheme + this.remoteOrigin + '/oauth/gplus'
+            this.launchPopup(url)
+            break
+          case "facebook":
+            var url = this.remoteScheme + this.remoteOrigin + '/oauth/facebook'
+            this.launchPopup(url)
+            break
+        }
+
+      },
+
+      launchPopup: function(url) {
+        var win = window.open(url, "windowname", 'width=800, height=600'); 
+        var that = this
+        var pollTimer =  window.setInterval(function() { 
+            try {
+                if (win.document.URL.indexOf(that.clientOrigin) != -1) {
+                  window.clearInterval(pollTimer);
+                  var url =  win.document.URL;
+                  win.close();
+                  that.validateToken(url);
+                }
+            } catch(e) {
+            }
+        }, 100);
+      },
+
+      validateToken: function(url) {
+          var newurl = url.replace(window.location.host+"/auth",this.remoteOrigin+"/oauth")
+          this.$.oauth.url = newurl
+          this.$.oauth.generateRequest()
+      },
+
+      loginRes: function() {
+        var r=this.$.login.lastResponse
+        this.makePassUser(r)
+      },
+
+      createUser: function(username,pass) {
+        this.$.register.body = {'username':username,'password':pass}
+        this.$.register.url = this.remoteScheme + this.remoteOrigin + '/auth/register'
+        this.$.register.generateRequest()
+      },
+
+      registerRes: function() {
+        var r = this.$.register.lastResponse
+        this.makePassUser(r)
+      },
+
+      oauthRes: function() {
+        var r=this.$.oauth.lastResponse
+        if(r.Error) {
+          this.fire("error",r.Name)
+        } else {
+          var user={
+            username:r.Name,
+            provider:this.provider,
+            pic:r.Pic
+          }
+          this.user=user
+          r.Drawings.splice(-1,1)
+          this.drawings = r.Drawings
+        }
+      },
+
+      logout: function() {
+        this.$.logout.body = {'username':this.user.username}
+        this.$.logout.url = this.remoteScheme + this.remoteOrigin + '/auth/logout'
+        this.$.logout.generateRequest()
+      },
+
+      logoutRes: function() {
+        //r=this.$.logout.lastResponse
+        //if(!r.Error){
+          this.user=null
+        //}
+      },
+
+      makePassUser: function(r) {
+        if(r.Error) {
+          this.fire("error",r.Name)
+        } else {
+          var user={
+            username:r.Name,
+            provider:'password',
+            pic:"images/person.svg"
+          }
+          this.user=user
+          r.Drawings.splice(-1,1)
+          this.drawings = r.Drawings
+        }
+      },
+
+      save: function(title) {
+        if(this.drawings.includes(title)){
+          this.fire("overwrite",{"title":title,"index":this.drawings.indexOf(title)})
+        } else {
+          this.$.save.body = {'title':title,'page':this.socket}
+          this.$.save.url = this.remoteScheme + this.remoteOrigin + '/auth/save'
+          this.$.save.generateRequest()
+        }
+      },
+
+      saveRes: function() {
+        var r = this.$.save.lastResponse
+        if(!r.Error){
+          this.unshift("drawings",r.Name)
+          this.notifyPath("drawings",this.drawings)
+        }
+      },
+
+      overwrite: function(title,index) {
+        this.$.overwrite.body = {'title':title,'page':this.socket,'index':index}
+        this.$.overwrite.url = this.remoteScheme + this.remoteOrigin + '/auth/overwrite'
+        this.$.overwrite.generateRequest()
+      },
+
+      overwriteRes: function() {
+        console.log(this.$.overwrite.lastResponse)
+      },
+
+      load: function(e) {
+        this.$.loader.body = {'title':e}
+        this.$.loader.url = this.remoteScheme + this.remoteOrigin + '/auth/load'
+        this.$.loader.generateRequest()
+      },
+
+      loadRes: function() {
+        //return drawing! ( []string )
+        var d =this.$.loader.lastResponse //array of strings
+        if (!d.Error){
+          for(var i=0; i<d.Drawings.length; i++) {
+            this.async((function(i){
+              return function() {
+                this.fire("msg",JSON.parse(d.Drawings[i]))
+              }
+            })(i),100*i-100) //IIFE
+          }
+        }
+
+      },
+
+      delete: function(e) {
+        this.$.delete.body = {'title':e.detail.title,"index":e.detail.index}
+        this.$.delete.url = this.remoteScheme + this.remoteOrigin + '/auth/delete'
+        this.$.delete.generateRequest()
+      },
+
+      deleteRes: function() {
+        var d = this.$.delete.lastResponse
+        if(!d.Error){
+          var idx = d.Drawings[0]
+          this.splice("drawings",idx,1)
+        }
+      },
+
+     
+
+
+
+ });
+
+  </script>
+
+</dom-module>

@@ -1,0 +1,98 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="felt-size.html">
+<link rel="import" href="felt-color.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+
+
+<dom-module id="felt-stroke">
+  <template>
+    <style>
+      :host {
+        @apply(--layout-vertical);
+        @apply(--layout-center);
+        @apply(--layout-around-justified);
+        @apply(--paper-font-subhead);
+
+        margin-left:27px;
+
+        transition:width 100ms ease-in;
+
+        /*--paper-toggle-button-checked-button-color:#FFFF00;
+        --paper-toggle-button-checked-bar-color:#FFFF00;
+        --paper-toggle-button-checked-ink-color:#FFFF00;*/
+        background: white;
+      }
+    </style>
+
+      <!--<div style="width:220px" class="layout horizontal center justified">
+        <div>Outline: </div>
+        <paper-toggle-button checked="{{opened}}" style="margin-right:10px;"></paper-toggle-button>
+      </div>
+      <iron-collapse opened="{{opened}}">-->
+      	<felt-size initial="{{initialSize}}" label="Stroke Size:" min="0" max="30" on-pick="sizeChange"></felt-size>
+        <felt-color initial-rgb="{{initialRgb}}" label="Stroke Color" on-pick="colorChange"></felt-color>
+      <!--</iron-collapse>-->
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'felt-stroke',
+
+      properties: {
+        stroke: {
+          type: String,
+          computed: 'computeStroke(color,size)',
+          observer: 'strokeChange'
+        },
+        size: {
+          type:Number,
+          value: 0
+        },
+        color: {
+          type: String,
+        },
+        opened: {
+          type: Boolean,
+          value: true,
+          computed: 'computeOpened(size)',
+          observer: 'openChange'
+        },
+        initialSize:{
+          type:String
+        },
+        initialRgb:{
+          type:String,
+        }
+      },
+      /*observers: [
+        'openChange(opened)'
+      ],*/
+
+      sizeChange: function(e) {
+        this.size=e.detail.size*2;
+      },
+
+      computeOpened: function() {
+        return this.size > 0 ? true : false;
+      },
+
+      colorChange: function(e) {
+        this.color=e.detail.color;
+      },
+
+      computeStroke: function() {
+        return this.color + ' ' + this.size;
+      },
+
+      strokeChange: function() {
+        this.fire('pick-stroke',{stroke:this.stroke});
+      },
+
+      openChange: function() {
+        this.fire('outline',{outline:this.opened});
+      }
+
+    });
+  </script>
+</dom-module>

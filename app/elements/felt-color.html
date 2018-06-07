@@ -1,0 +1,314 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+
+<dom-module id="felt-color">
+  <template>
+    <style>
+      :host {
+        display: inline-block;
+        @apply(--layout-vertical);
+        @apply(--layout-center);
+        @apply(--layout-around-justified);
+        @apply(--paper-font-subhead);
+      }
+      #a {
+        --paper-slider-active-color: black;
+        --paper-slider-knob-color: black;
+        --paper-slider-pin-color: black;
+      }
+      #box{
+        height:50px;
+        width:50px;
+        border:1px solid #616161;
+        box-shadow: 4px 2px 6px -4px rgba(0, 0, 0, 0.4);
+      }
+
+      #picker{
+        height:180px;
+        width:180px;
+        cursor:pointer;
+        /*border:1px solid #616161;*/
+        
+      }
+      #dot{
+        height:10px;
+        width:10px;
+        border:3px solid black;
+        border-radius: 100%;
+        background-color: whitesmoke;
+        position: absolute;
+        left: 0;
+        top: 0;
+        -webkit-transform: translate(90px,170px);
+        -moz-transform: translate(90px,170px);
+        -ms-transform: translate(90px,170px);
+        -o-transform: translate(90px,170px);
+        transform: translate(90px,170px);
+        cursor: pointer;
+      }
+      #bar{
+        height:4px;
+        width:29px;
+        border-right: 3px solid black;
+        border-left: 3px solid black;
+        border-top: 3px solid black;
+        border-bottom: 3px solid black;
+        border-radius: 20%;
+        background-color: whitesmoke;
+        position: absolute;
+        left: 0;
+        top: 0;
+        -webkit-transform: translate(187px,0px);
+        -moz-transform: translate(187px,0px);
+        -ms-transform: translate(187px,0px);
+        -o-transform: translate(187px,0px);
+        transform: translate(187px,0px);
+        cursor: pointer;
+      }
+      #xy{
+        position: relative;
+        margin:16px auto;
+        box-shadow: 0px 0px 9px -5px rgba(0, 0, 0, 0.4);
+        padding: 2px;
+      }
+      .a{
+        outline:2px solid #777777;
+      }
+      .b{
+        overflow:hidden;
+        position: relative;
+        height:180px;
+        width:180px;
+      }
+      .c{
+        outline:2px solid #777777;
+        height:180px;
+        width:27px;
+        margin-left:9px;
+      }
+    </style>
+    <style include="iron-flex iron-flex-alignment"></style>
+    
+    <div style="width:200px;margin-top:16px;" class="layout horizontal center justified"><div>{{label}}</div><div id="box" style$="[[boxStyle]]"></div></div>
+
+    <div id="xy" class="layout horizontal center">
+      <div class="a"><div class="b">
+        <canvas id="picker" width="180" height="180" on-track="track" on-down="down"></canvas>
+        <div id="dot" on-track="trackdot" on-down="pd"></div>
+      </div></div>
+      <div class="c">
+        <canvas id="grayscale" width="27" height="180" on-track="gtrack" on-down="gdown"></canvas>
+        <div id="bar" on-track="trackbar" on-down="pd"></div>
+      </div>
+    </div>
+
+    <div class="layout vertical">
+      <div style$="{{computeHide(hideOpacity)}}">
+      <div>Opacity</div>
+      <paper-slider id="a" min="0" max="100" value="100" immediate-value="{{a}}"></paper-slider>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'felt-color',
+
+      properties: {
+        color: {
+          type: String,
+          observer: 'colorChange',
+          computed: 'colorComputed(rgb,a)'
+        },
+        boxStyle: {
+          type: String,
+          value: 'background-color:rgba(0,0,0,1);'
+        },
+        rgb:{
+          type:String,
+          value:'rgba(0,0,0,'
+        },
+        a:{
+          type:Number,
+          value:100,
+        },
+        label:{
+          type: String,
+          value: 'Color'
+        },
+        hideOpacity:{
+          type:Boolean,
+          value:false
+        },
+        initialRgb:{
+          type:String,
+          observer:'setInitial'
+        }
+      },
+
+      setInitial: function() {
+        this.rgb='rgba('+this.initialRgb+',';
+      },
+
+      computeHide: function() {
+        return this.hideOpacity ? 'display:none': 'display:block';
+      },
+
+      colorComputed: function(rgb,a) {
+        return rgb+a/100+')';
+      },
+
+      colorChange: function() {
+        this.fire('pick',{color:this.color});
+        this.boxStyle='background-color:'+this.color+';';
+      },
+
+      ready: function() {
+
+        this.context = this.$.picker.getContext('2d');
+        this.gcontext = this.$.grayscale.getContext('2d');
+        this.width=180;
+        this.height=180;
+        this.gwidth=27;
+
+        var colorGradient = this.context.createLinearGradient(0, 0, this.width, 0);
+        colorGradient.addColorStop(0, 'rgb(255,0,0)');
+        colorGradient.addColorStop(0.16, 'rgb(255,0,255)');
+        colorGradient.addColorStop(0.32, 'rgb(0,0,255)');
+        colorGradient.addColorStop(0.48, 'rgb(0,255,255)');
+        colorGradient.addColorStop(0.64, 'rgb(0,255,0)');
+        colorGradient.addColorStop(0.80, 'rgb(255,255,0)');
+        colorGradient.addColorStop(1, 'rgb(255,0,0)');
+        this.context.fillStyle = colorGradient;
+        this.context.fillRect(0, 0, this.width, this.height);
+        var bwGradient = this.context.createLinearGradient(0, 0, 0, this.height);
+        bwGradient.addColorStop(0, 'rgba(255,255,255,1)');
+        bwGradient.addColorStop(0.5, 'rgba(255,255,255,0)');
+        bwGradient.addColorStop(0.5, 'rgba(0,0,0,0)');
+        bwGradient.addColorStop(1, 'rgba(0,0,0,1)');
+        this.context.fillStyle = bwGradient;
+        this.context.fillRect(0, 0, this.width, this.height); 
+
+        var gGradient = this.gcontext.createLinearGradient(0, 0, 0, this.height);
+        gGradient.addColorStop(0.1, 'rgba(127,255,0,1)');
+        gGradient.addColorStop(0.9, 'rgba(127,127,127,1)');
+        this.gcontext.fillStyle = gGradient;
+        this.gcontext.fillRect(0, 0, this.gwidth, this.height);
+
+        this.y=4;
+        this.isReady=true; 
+
+      },
+
+      track: function(e) {
+        switch(e.detail.state) {
+          case 'start':
+            this.setTransition(this.$.dot,0);
+            break;
+          case 'track':
+            var target = e.target;
+            this.render(e,target);
+            break;
+          case 'end':
+            break;
+        }
+      },
+
+      trackdot: function(e) {
+        switch(e.detail.state) {
+          case 'start':
+            this.setTransition(this.$.dot,0);
+            break;
+          case 'track':
+            var target=e.target.parentNode;
+            this.render(e,target);
+            break;
+        }
+      },
+
+      gtrack: function(e) {
+        switch(e.detail.state) {
+          case 'start':
+            this.setTransition(this.$.bar,0);
+            break;
+          case 'track':
+            var target = e.target;
+            this.grender(e,target);
+            break;
+        }
+      },
+
+      trackbar: function(e) {
+        switch(e.detail.state) {
+          case 'start':
+            this.setTransition(this.$.bar,0);
+            break;
+          case 'track':
+            var target=e.target.parentNode;
+            this.grender(e,target);
+            break;
+        }
+      },
+
+      down: function(e) {
+        e.preventDefault(); //prevents re-focus and scroll to paper-menu item, but not on mobile!
+        var target=e.target;
+        this.setTransition(this.$.dot,50);
+        this.render(e,target);
+      },
+
+      gdown: function(e) {
+        e.preventDefault();
+        var target=e.target;
+        this.setTransition(this.$.bar,50);
+        this.grender(e,target);
+      },
+
+      render: function(e,target) {
+        var rect=target.getBoundingClientRect();
+        var x=Math.min(Math.max((e.detail.x-rect.left),0),179);
+        var y=Math.min(Math.max((e.detail.y-rect.top),0),179);
+        this.transform('translate('+(x-8)+'px,'+(y-8)+'px)',this.$.dot);
+        var d=this.context.getImageData(x,y,1,1).data;
+        var col='rgba('+d[0]+','+d[1]+','+d[2]+',1)';
+        this.recolorG(col);
+        d=this.gcontext.getImageData(16,this.y,1,1).data;
+        this.rgb='rgba('+d[0]+','+d[1]+','+d[2]+',';
+      },
+
+      recolorG: function(col) {
+        var gGradient = this.gcontext.createLinearGradient(0, 0, 0, this.height);
+        gGradient.addColorStop(0.1, col);
+        gGradient.addColorStop(0.9, 'rgba(127,127,127,1)');
+        this.gcontext.fillStyle = gGradient;
+        this.gcontext.fillRect(0, 0, this.gwidth, this.height);
+      },
+
+      grender: function(e,target) {
+        var rect=target.getBoundingClientRect();
+        this.y=Math.min(Math.max((e.detail.y-rect.top),4),179);
+        this.transform('translate(187px,'+(this.y-4)+'px)',this.$.bar);
+        var d=this.gcontext.getImageData(16,this.y,1,1).data;
+        this.rgb='rgba('+d[0]+','+d[1]+','+d[2]+',';
+      },
+
+      pd: function(e) {
+        e.preventDefault();
+      },
+
+      setTransition: function(e, ms) {
+        e.style['-webkit-transition'] = 'transform '+ms+'ms ease-in';
+        e.style['-moz-transition'] = 'transform '+ms+'ms ease-in';
+        e.style['-ms-transition'] = 'transform '+ms+'ms ease-in';
+        e.style['-o-transition'] = 'transform '+ms+'ms ease-in';
+        e.style.transition = 'transform '+ms+'ms ease-in';
+      }
+
+
+
+    });
+  </script>
+</dom-module>

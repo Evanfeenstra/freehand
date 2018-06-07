@@ -1,0 +1,365 @@
+
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-meta/iron-meta.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../bower_components/neon-animation/animations/fade-out-animation.html">
+
+
+<dom-module id="felt-intro">
+
+  <style>
+    :host {
+      @apply(--layout-inline);
+      @apply(--layout-center-center);
+      position: relative;
+
+      vertical-align: middle;
+
+      fill: currentcolor;
+
+      width: var(--iron-icon-width, 24px);
+      height: var(--iron-icon-height, 24px);
+
+    }
+
+    paper-dialog{
+      border:1px solid #444444;
+      background:url(../images/black-thread.png) rgba(66, 165, 245, 0.5) top center repeat;
+    }
+
+    .t {
+      /*-webkit-transition: -webkit-transform 400ms ease-in;
+      -moz-transition: -moz-transform 400ms ease-in;
+      -o-transition: -o-transform 400ms ease-in;
+      transition: transform 400ms ease-in;*/
+    }
+
+    svg {
+      border:1px solid #fff;
+      height:176px;
+      width:176px;
+      margin:4px 9px;
+      box-shadow:0 4px 5px 0 rgba(0,0,0,.14),0 1px 10px 0 rgba(0,0,0,.12),0 2px 4px -1px rgba(0,0,0,.4);
+      -webkit-transition:all 250ms ease-in;
+      transition:all 250ms ease-in;
+      background: url(../images/black-thread-light.png) #42A5F5 top center repeat;
+
+    }
+
+    .text{
+      margin-top:30px;
+      color:white;
+      font-family:'Calligraffitti';
+      font-size: 40px;
+    }
+
+    .blue{
+      fill:#303F9F;
+    }
+    .redOG{
+      fill: #E91E63;
+    }
+    .red{
+      fill: black;
+    }
+    .greenOG{
+      fill:#00C300;
+    }
+    .green{
+      fill:#818181;
+    }
+    .green2OG{
+      fill:#60C160;
+    }
+    .green2{
+      fill:#00C300;
+    }
+    .yellow{
+      fill:#FFEB3B;
+    }
+    .grey{
+      fill:#616161;
+    }
+    .grey2{
+      fill:#59306C;
+    }
+    .white{
+      fill:#FFFFFF;
+    }
+    .black{
+      fill:#000000;
+    }
+
+    #bounder2{
+      margin-top:9px;
+    }
+  </style>
+
+  <style include="iron-flex iron-flex-alignment"></style>
+
+  <template>
+  <paper-dialog id="dialog" with-backdrop
+                  entry-animation="scale-up-animation"
+                  exit-animation="fade-out-animation"
+                  on-tap="closer">
+  <div class="vertical layout center">
+   <div id="bounder" class="horizontal layout center">
+    <svg class="logo F" id="logo0" height="99" width="99" viewBox="0 0 24 24">
+
+        <polyline class="red t" points="4,24 4,20 8,16 8,24 4,24"></polyline>
+        <polyline class="red t" points="4,12 4,4 12,4 4,12"></polyline>
+        <polyline class="red t" points="8,16 12,12 16,12 16,16 8,16"></polyline>
+        <polyline class="red t" points="16,8 20,4 20,8 16,8"></polyline>
+
+        <polyline class="green2 t" points="0,24 0,16 4,12 4,20 0,24"></polyline>
+        <polyline class="green2 t" points="8,12 8,8 16,8 12,12 8,12"></polyline>
+        <polyline class="green2 t" points="8,12 8,8 16,8 12,12 8,12"></polyline>
+        <polyline class="green2 t" points="12,4 16,0 24,0 20,4 12,4"></polyline>
+
+        <polyline class="blue t" points="4,20 4,12 8,8 8,12 12,12 4,20"></polyline>
+        <polyline class="blue t" points="8,8 12,4 20,4 16,8 8,8"></polyline>
+
+        <polyline class="grey t" points="0,24 4,20 4,24 0,24"></polyline>
+        <polyline class="grey t" points="8,24 8,16 16,16 8,24"></polyline>
+        <polyline class="grey t" points="16,16 16,12 12,12 16,8 20,8 20,4 24,0 24,8 16,16"></polyline>
+
+    </svg>
+
+    <svg class="logo R" id="logo1" height="99" width="99" viewBox="0 0 24 24">
+
+        <polyline class="green t" points="0,0 4,4 4,12 0,8 0,0"></polyline>
+        <polyline class="green t" points="8,8 12,12 8,12 8,8" ></polyline>
+        <polyline class="green t" points="8,16 12,16 16,24 8,16" ></polyline>
+        <polyline class="green t" points="16,16 24,24 20,24 16,16" ></polyline>
+
+        <polyline class="red t" points="4,4 12,4 16,8 8,8 4,4" ></polyline>
+        <polyline class="red t" points="16,8 20,12 16,16 12,12 16,12 16,8" ></polyline>
+        <polyline class="red t" points="4,12 8,16 8,24 4,24 4,12" ></polyline>
+
+        <polyline class="grey2 t" points="0,0 8,0 12,4 4,4 0,0" ></polyline>
+        <polyline class="grey2 t" points="8,8 16,8 16,12 12,12 8,8" ></polyline>
+        <polyline class="grey2 t" points="20,12 24,16 24,24 16,16 20,12" ></polyline>
+
+        <polyline class="blue t" points="12,4 16,4 20,8 20,12 12,4" ></polyline>
+        <polyline class="blue t" points="4,4 8,8 8,12 12,12 16,16 20,24 16,24 12,16 8,16 4,12 4,4" ></polyline>
+
+    </svg>
+
+    <svg class="logo E1" id="logo2" height="99" width="99" viewBox="0 0 24 24">
+
+        <polyline class="red t" points="4,24 4,20 8,16 8,20 12,20 8,24 4,24" ></polyline>
+        <polyline class="red t" points="4,12 4,4 12,4 4,12" ></polyline>
+        <polyline class="red t" points="8,16 12,12 16,12 16,16 8,16" ></polyline>
+        <polyline class="red t" points="16,8 20,4 20,8 16,8" ></polyline>
+
+        <polyline class="green2 t" points="0,24 0,16 4,12 4,20 0,24" ></polyline>
+        <polyline class="green2 t" points="8,12 8,8 16,8 12,12 8,12" ></polyline>
+        <polyline class="green2 t" points="12,4 16,0 24,0 20,4 12,4" ></polyline>
+
+        <polyline class="blue t" points="8,24 12,20 20,20 20,24 8,24" ></polyline>
+        <polyline class="blue t" points="4,20 4,12 8,8 8,12 12,12 4,20" ></polyline>
+        <polyline class="blue t" points="8,8 12,4 20,4 16,8 8,8" ></polyline>
+
+        <polyline class="grey t" points="0,24 4,20 4,24 0,24" ></polyline>
+        <polyline class="grey t" points="8,20 8,16 16,16 12,20 8,20" ></polyline>
+        <polyline class="grey t" points="16,16 16,12 12,12 16,8 20,8 20,4 24,0 24,8 16,16" ></polyline>
+
+    </svg>
+
+      <svg class="logo E2" id="logo3" height="99" width="99" viewBox="0 0 24 24">
+
+        <polyline class="green t" points="0,0 4,0 4,12 0,8 0,0" ></polyline>
+        <polyline class="green t" points="8,8 12,12 8,12 8,8" ></polyline>
+        <polyline class="green t" points="8,16 16,16 20,20 12,20 8,16" ></polyline>
+        <polyline class="green t" points="20,20 24,24 20,24 20,20" ></polyline>
+
+        <polyline class="red t" points="4,12 8,16 8,20 12,20 16,24 4,24 4,12" ></polyline>
+        <polyline class="red t" points="4,4 12,4 16,8 8,8 4,4" ></polyline>
+        <polyline class="red t" points="12,12 16,12 16,16 12,12" ></polyline>
+
+        <polyline class="blue t" points="4,4 8,8 8,12 12,12 16,16 8,16 4,12 4,4" ></polyline>
+        <polyline class="blue t" points="12,4 20,4 20,8 16,8 12,4" ></polyline>
+        <polyline class="blue t" points="12,20 20,20 20,24 16,24 12,20" ></polyline>
+
+        <polyline class="grey2 t" points="0,0 8,0 12,4 4,4 0,0" ></polyline>
+        <polyline class="grey2 t" points="8,8 16,8 24,16 24,24 16,16 16,12 12,12 8,8" ></polyline>
+
+      </svg>
+
+    </div>
+
+    <div id="bounder2" class="horizontal layout center">
+
+      <svg class="logo H" id="logo4" height="99" width="99" viewBox="0 0 24 24">
+        
+        <polyline class="blue t" points="4,4 8,8 8,12 12,12 16,16 8,16 4,12 4,4" ></polyline>
+        <polyline class="blue t" points="16,16 20,20 20,24 16,24 16,16" ></polyline>
+        <polyline class="blue t" points="16,4 20,4 20,12 16,8 16,4" ></polyline>
+        
+        <polyline class="red t" points="4,12 8,16 8,24 4,24 4,12" ></polyline>
+        <polyline class="red t" points="4,4 8,4 8,8 4,4" ></polyline>
+        <polyline class="red t" points="16,8 20,12 20,20 12,12 16,12 16,8" ></polyline>
+
+        <polyline class="green t" points="0,0 4,4 4,12 0,8 0,0" ></polyline>
+        <polyline class="green t" points="8,8 12,12 8,12 8,8" ></polyline>
+        <polyline class="green t" points="8,16 16,16 16,24 8,16" ></polyline>
+        <polyline class="green t" points="20,20 24,24 20,24 20,20" ></polyline>
+
+        <polyline class="grey2 t" points="0,0 8,0 16,8 16,12 12,12 8,8 8,4 4,4 0,0" ></polyline>
+        <polyline class="grey2 t" points="20,12 24,16 24,24 20,20 20,12" ></polyline>
+
+      </svg>
+
+      <svg class="logo A" id="logo5" height="99" width="99" viewBox="0 0 24 24">
+        
+        <polyline class="red t" points="4,8 8,4 12,4 4,12 4,8" ></polyline>
+        <polyline class="red t" points="4,20 8,16 8,24 4,24 4,20" ></polyline>
+        <polyline class="red t" points="8,16 12,12 16,12 16,8 18,6 20,8 20,12 16,16 8,16" ></polyline>
+        
+        <polyline class="blue t" points="4,12 8,8 8,12 12,12 4,20 4,12" ></polyline>
+        <polyline class="blue t" points="8,8 12,4 16,4 18,6 16,8 8,8" ></polyline>
+        <polyline class="blue t" points="16,16 20,12 20,24 16,24 16,16" ></polyline>
+
+        <polyline class="green2 t" points="0,16 4,12 4,20 0,24 0,16" ></polyline>
+        <polyline class="green2 t" points="8,8 16,8 12,12 8,12 8,8" ></polyline>
+        <polyline class="green2 t" points="12,4 16,0 24,0 18,6 16,4 12,4" ></polyline>
+
+        <polyline class="grey t" points="0,24 4,20 4,24 0,24" ></polyline>
+        <polyline class="grey t" points="8,16 16,16 8,24 8,16" ></polyline>
+        <polyline class="grey t" points="12,12 16,8 16,12 12,12" ></polyline>
+        <polyline class="grey t" points="18,6 24,0 24,8 20,12 20,8 18,6" ></polyline>
+
+      </svg>
+
+      <svg class="logo N" id="logo6" height="99" width="99" viewBox="0 0 24 24">
+        
+        <polyline class="blue t" points="4,4 8,8 8,16 4,12 4,4" ></polyline>
+        <polyline class="blue t" points="8,8 20,20 20,24 16,24 8,8" ></polyline>
+        <polyline class="blue t" points="16,8 16,4 20,4 20,12 16,8" ></polyline>
+        
+        <polyline class="red t" points="4,12 8,16 8,24 4,24 4,12" ></polyline>
+        <polyline class="red t" points="4,4 10,4 16,16 4,4" ></polyline>
+        <polyline class="red t" points="16,8 20,12 20,20 16,16 16,8" ></polyline>
+
+        <polyline class="green t" points="0,0 4,4 4,12 0,8 0,0" ></polyline>
+        <polyline class="green t" points="8,8 16,24 8,16 8,8" ></polyline>
+        <polyline class="green t" points="20,20 24,24 20,24 20,20" ></polyline>
+
+        <polyline class="grey2 t" points="0,0 8,0 16,8 16,16 10,4 4,4 0,0" ></polyline>
+        <polyline class="grey2 t" points="20,12 24,16 24,24 20,20 20,12" ></polyline>
+
+      </svg>
+
+
+      <svg class="logo D" id="logo7" height="40" width="40" viewBox="0 0 24 24">
+        
+      <polyline class="red t" points="4,4 12,4 4,12 4,4" ></polyline>
+        <polyline class="red t" points="4,20 8,16 8,20 12,20 8,24 4,24 4,20" ></polyline>
+        <polyline class="red t" points="15,9 18,6 20,8 20,12 16,16 16,10 15,9" ></polyline>
+        
+        <polyline class="blue t" points="4,12 8,8 8,16 4,20 4,12" ></polyline>
+        <polyline class="blue t" points="8,8 12,4 16,4 18,6 15,9 14,8 8,8" ></polyline>
+        <polyline class="blue t" points="8,24 12,20 14,20 16,18 16,16 20,12 20,20 16,24 8,24" ></polyline>
+
+        <polyline class="green2 t" points="0,16 4,12 4,20 0,24 0,16" ></polyline>
+        <polyline class="green2 t" points="8,8 14,8 15,9 8,16 8,8" ></polyline>
+        <polyline class="green2 t" points="12,4 16,0 24,0 18,6 16,4 12,4" ></polyline>
+
+        <polyline class="grey t" points="0,24 4,20 4,24 0,24" ></polyline>
+        <polyline class="grey t" points="8,16 15,9 16,10 16,16 12,20 8,20 8,16" ></polyline>
+        <polyline class="grey t" points="18,6 24,0 24,8 20,12 20,8 18,6" ></polyline>
+
+      </svg>
+
+    </div>
+
+    </paper-dialog>
+
+  </template>
+
+  <script>
+
+    Polymer({
+
+      is: 'felt-intro',
+
+      closer: function() {
+        this.$.dialog.close();
+      },
+
+      // light yellow: FFF9C4
+      // light blue: B2FBFF
+
+      ready: function() {
+        this.List=[[['-4px,-4px'],['-4px,-4px'],['8px,-8px'],['4px,-4px'],['4px,-4px'],['4px,-4px'],['-4px,-4px'],['-8px,0px'],['-4px,-4px'],['4px,-4px'],['8px,-16px'],['0px,-8px'],['12px,0px']],
+          [['16px,16px','-45deg'],['-4px,4px'],['-4px,0px'],['-8px,0px'],['4px,12px'],['19px,2px','45deg'],['-4px,-5px'],['4px,12px'],['4px,12px'],['-24px,24px','-45deg'],['24px,28px','180deg'],['0px,20px']],
+          [['0px,-24px'],['4px,4px'],['8px,0px'],['4px,-4px'],['8px,0px'],['0px,-4px'],['0px,0px'],['4px,-12px'],['8px,0px'],['4px,0px'],['20px,-16px'],['0px,-16px'],['0px,-16px']],
+          [['20px,8px'],['37px,8px','135deg'],['4px,-4px'],['-4px,0px'],['0px,4px'],['0px,16px'],['0px,8px'],['8px,4px'],['0px,4px'],['4px,0px'],['4px,16px'],['16px,0px']],
+          [['0px,8px'],['-8px,-4px'],['0px,12px'],['-4px,0px'],['-4px,0px'],['4px,8px'],['0px,4px'],['-4px,12px'],['0px,0px'],['-4px,0px'],['0px,-12px'],['-16px,-8px']],
+          [['-4px,-4px'],['8px,-16px'],['16px,0px'],['0px,0px'],['0px,4px'],['-8px,-16px'],['0px,-8px'],['-4px,-4px'],['-8px,0px'],['0px,-8px'],['-4px,-8px'],['16px,12px','-180deg'],['-4px,-4px']],
+          [['8px,0px'],['4px,0px'],['0px,4px'],['8px,0px'],['2px,4px'],['-8px,2px'],['8px,18px'],['4px,0px'],['-4px,0px'],['0px,-16px'],['0px,-4px']],
+          [['10px,1px'],['12px,-12px'],['4px,-4px'],['3px,-3px'],['2px,6px'],['-6px,-10px'],['5px,-13px'],['1px,-9px'],['-6px,-6px'],['0px,4px','-90deg'],['6px,-14px'],['6px,6px']]
+        ];
+        this.isAnimating=false;
+
+        if(window.innerWidth>831){
+          this.init();
+        }  
+        
+      },
+
+      init: function() {
+        var one=Polymer.dom(this.$.bounder).querySelectorAll('.logo');
+        var two=Polymer.dom(this.$.bounder2).querySelectorAll('.logo');
+        this.svgs=one.concat(two);
+
+        for(var i=0; i<8; i++) { //this.svgs.length
+          var shapes=Polymer.dom(this.svgs[i]).querySelectorAll('.t');
+          for(var j=0; j<shapes.length; j++) {
+            if(this.List[i][j][1]){this.transform(('translate('+this.List[i][j][0]+') rotate('+this.List[i][j][1]+')'),shapes[j]);}  //rotate
+            else{this.transform(('translate('+this.List[i][j][0]+')'),shapes[j]);} //no rotate
+            this.setTransition(shapes[j],400);
+          }
+        }
+
+        this.async(function() {this.$.dialog.open();},50);
+
+        this.async(this.go,650);
+      },
+
+      go: function() {
+        for(var i=0; i<8; i++) { //this.svgs.length
+            var shapes=Polymer.dom(this.svgs[i]).querySelectorAll('.t');
+            for(var j=0; j<shapes.length; j++) {
+              this.animator(j,shapes[j]);
+            }
+        }
+      },
+
+      animator: function(i,el) {
+        this.async(function() {
+          this.transform(('translate(0px,0px)'),el);
+        },i*200);
+      },
+
+      blacknwhite: function() {
+
+      },
+
+      setTransition: function(e, ms) {
+        e.style['-webkit-transition'] = '-webkit-transform '+ms+'ms ease-in';
+        e.style['-moz-transition'] = '-moz-transform '+ms+'ms ease-in';
+        e.style['-ms-transition'] = '-ms-transform '+ms+'ms ease-in';
+        e.style['-o-transition'] = '-o-transform '+ms+'ms ease-in';
+        e.style.transition = 'transform '+ms+'ms ease-in';
+      }
+      
+
+    });
+
+  </script>
+
+</dom-module>

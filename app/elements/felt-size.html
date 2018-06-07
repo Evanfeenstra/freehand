@@ -1,0 +1,97 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+
+<dom-module id="felt-size">
+  <template>
+    <style include="iron-flex iron-flex-alignment"></style>
+    <style>
+      :host {
+        display: inline-block;
+        @apply(--layout-vertical);
+        @apply(--layout-center);
+        @apply(--layout-around-justified);
+        @apply(--paper-font-subhead);
+      }
+      #penslider{
+        --paper-slider-active-color: black;
+        --paper-slider-knob-color: black;
+        --paper-slider-pin-color: black;
+        --paper-slider-knob-start-color: black;
+        --paper-slider-pin-start-color: black;
+        --paper-slider-knob-start-border-color: black;
+      }
+      #circle{
+        height:60px;
+        width:60px;
+        border-radius:100%;
+      }
+    </style>
+
+    <div style="width:200px;height:60px;margin-top:12px;" class="layout horizontal center justified">
+      <div><span>{{label}}</span><span> </span><span>{{size}}</span></div>
+      <div id="circle" class="vertical layout center center-justified" style$='[[computeCircle(text,max)]]'><span style$='[[computeText(text)]]'>A</span></div>
+    </div>
+    <!--<paper-slider editable min="1" max="60" value="3" on-immediate-value-change="sizeChange" on-value-change="sizeChange" id="penslider"></paper-slider>-->
+    <paper-slider min="{{min}}" max="{{max}}" immediate-value="{{size}}" id="penslider"></paper-slider>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'felt-size',
+
+      properties: {
+        size: {
+          type:Number,
+          notify:true,
+          observer: 'sizeChange',
+        },
+        text: {
+          type: Boolean,
+          value: false
+        },
+        min: {
+          type: Number,
+          value: 1
+        },
+        max: {
+          type: Number,
+          value: 60
+        },
+        label: {
+          type: String,
+          value: 'Size:'
+        },
+        initial:{
+          type:Number,
+          value:3
+        }
+      },
+
+      sizeChange: function() {
+        var size=this.size/this.max;
+        this.transform('scale('+size+','+size+')', this.$.circle);
+        this.fire('pick',{size:this.size});
+      },
+
+      computeCircle: function(text,max) {
+        return text ? 'font-size:'+max+'px' : 'background-color:black;width:'+max+'px;height:'+max+'px;';
+      },
+
+      computeText: function(text) {
+        return text ? 'display:block' : 'display:none';
+      },
+
+      ready: function() {
+        this.size = this.initial;
+        this.transform('scale('+this.size/this.max+','+this.size/this.max+')', this.$.circle);
+        this.$.penslider.value=this.initial;
+        //this.$.circle
+      }
+
+    });
+  </script>
+</dom-module>

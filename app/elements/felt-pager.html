@@ -1,0 +1,238 @@
+
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+
+
+<dom-module id="felt-pager">
+  <style include="iron-flex iron-flex-alignment"></style>
+  <style>
+    :host {
+      margin:0 !important;
+      padding:0 !important;
+    }
+
+    .btn{
+      text-decoration: none;
+      color: #fff;
+      background-color: #26a69a;
+      text-align: center;
+      letter-spacing: .5px;
+      -webkit-transition: all .2s ease-out;
+      -moz-transition: all .2s ease-out;
+      -o-transition: all .2s ease-out;
+      -ms-transition: all .2s ease-out;
+      transition: all .2s ease-out;
+      cursor: pointer; 
+      border: none;
+      border-radius: 2px;
+      display: inline-block;
+      height: 36px;
+      line-height: 36px;
+      outline: 0;
+      padding: 0 2rem;
+      text-transform: uppercase;
+      vertical-align: middle;
+      margin-top: 21px;
+    }
+   .btn:hover {
+      background-color: #2bbbad; 
+    }
+    #leaver{
+      background-color: rgb(239, 83, 80);
+    }
+    #leaver:hover{
+      background-color: rgb(255, 110, 110);
+    }
+    
+    #gentext{
+      user-select: text;
+      -moz-user-select: text;
+      -webkit-user-select: text;
+      -ms-user-select: text;
+      text-align:center;
+      font-size:16px;
+      font-weight: bold;
+      color:#303F9F;
+      text-decoration: underline;
+      text-transform:none;
+    }
+    .padd{padding:20px;}
+
+  </style>
+
+  <template>
+
+    <iron-ajax id="ajax"
+      url="{{url}}"
+      handle-as="json"
+      on-response="responsy"
+    ></iron-ajax>
+
+    <div class="vertical layout start-justified center">
+      
+      <div style="background-color:#222222;border: 1px solid grey;border-bottom: none;" class="vertical layout start-justified center padd">
+        <div style="color:white;width:100%;margin-bottom:6px;text-align:center;">Share this URL to draw with friends:</div>
+        <paper-button style="color:#42A5F5;" on-tap="copytext" id="gentext" class="generated-text">http://freehand.online/<span>{{pageId}}</span></paper-button>
+        <paper-tooltip animation-delay="0" manual-mode id="texttooltip" position="top" for="gentext" offset="-8">URL Copied!</paper-tooltip>
+      </div>
+
+      <div class="vertical layout start-justified center padd">
+        <div>Or create a new page:</div>
+        <div style="width:100%">
+          <paper-input tabindex="0" label="Create or Join Page" id="pagerinput" maxlength="18" allowed-pattern="[a-zA-Z0-9-]+" prevent-invalid-input on-keypress="_enter"></paper-input>
+        </div>
+        <div style="text-align:center;">
+          <paper-button class="btn" on-tap="create">Create</paper-button>
+        </div>
+      </div>
+
+      <!--<paper-button id="leaver" class="btn" on-tap="leave">Leave Page</paper-button>-->
+    </div>
+
+  </template>
+
+  <script>
+
+    Polymer({
+
+      is: 'felt-pager',
+
+      properties: {
+
+        socket: {
+          type:String,
+          notify:true
+        },
+
+        datas: {
+          type: Object,
+          observer: 'datasChange'
+        },
+
+        visitorIndex: Number,
+
+        remoteOrigin: String,
+
+        user: Object
+
+      },
+
+      observers: [
+        'onLoadPage(pageId)'
+      ],
+
+      onLoadPage: function(pageId) {
+        if (pageId.length>0) {
+            this.url = 'http://' + this.remoteOrigin + '/page/' + pageId;
+            this.$.ajax.generateRequest();
+          }
+      },
+
+      responsy: function() {
+        this.visitorIndex = this.$.ajax.lastResponse.Name;
+        console.log("Visitor #",this.visitorIndex)
+        this.openSocket();
+      },
+
+      create: function() {
+        var val=this.$.pagerinput.value;
+        if(val.length>0 && this.pageId!=val){
+          //if no change, still reload. why did I do this?
+          /*if(this.pageId===val) {
+            this.onLoadPage(this.pageId);
+          }*/
+          this.ws.close();
+          this.pageId = val;          
+          //this.$.pagerinput.value='';
+          page.redirect('/'+this.pageId)
+
+        }
+        
+      },
+
+      _enter: function(e) {
+        if (e.keyCode === 13) {
+          e.preventDefault();
+          this.create();
+        }
+      },
+
+      openSocket: function() {
+          var url = 'ws://' + this.remoteOrigin + '/page/' + this.pageId + '/ws';
+
+          this.ws = new WebSocket(url);
+
+          var that=this;
+          this.ws.onmessage = function (msg) {
+            var d = JSON.parse(msg.data);
+            if(d.v !== that.visitorIndex) {
+              that.fire('ws',d);
+            }
+          };
+
+          this.ws.onclose = function(code){
+            console.log(code);
+            that.socket=null;
+            that.async(function(){
+              that.tryReconnect()
+            },1000)
+          };
+
+          this.ws.onopen = function(code){
+            that.socket=that.pageId;
+            console.log(code.type);
+          }
+
+          this.ws.onerror = function(code){
+            console.log(code.type)
+          }
+
+      },
+
+      tryReconnect: function() {
+        if(this.try<15 && this.socket==null) {
+          this.openSocket()
+        }
+      },
+
+      datasChange: function() {
+        this.datas.v = this.visitorIndex;
+        this.ws.send(JSON.stringify(this.datas));
+      },
+
+      copytext: function() {
+          var text = this.$.gentext;
+          var selection = window.getSelection();
+          var range = document.createRange();
+          range.selectNodeContents(text);
+          selection.removeAllRanges();
+          selection.addRange(range);
+          //add to clipboard.
+          document.execCommand('copy');
+          this.$.texttooltip.show();
+          this.async(function() {
+            this.$.texttooltip.hide();
+          },3500);
+      },
+
+      leave: function() {
+        window.history.pushState('/', 'title', '/');
+        //Polymer.dom(this).parentNode.close()
+        this.ws.close();
+        this.$.pagerinput.value='';
+      },
+
+      ready: function() {
+        this.try=0;
+      }
+
+    });
+
+  </script>
+
+</dom-module>

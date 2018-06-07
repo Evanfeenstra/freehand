@@ -1,0 +1,830 @@
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+
+<dom-module id="felt-canvas">
+  <template>
+    <style>
+      :host {
+        @apply(--layout-vertical);
+        @apply(--layout-center);
+        @apply(--layout-around-justified);
+        @apply(--paper-font-subhead);
+      }
+      canvas {
+        box-sizing: border-box;
+        background: white;
+        overflow: hidden;
+        cursor: crosshair;
+        /*transform-origin: 0 0;
+        -ms-transform-origin: 0 0;
+        -webkit-transform-origin: 0 0;*/
+      }
+      #tmpCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: transparent;
+      }
+      #undo_canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: transparent;
+      }
+      #textTool {
+        position: absolute;
+        border: 1px dashed black;
+        outline: 0;
+        font: 10px Verdana;
+        overflow: hidden;
+        white-space: nowrap;
+        font-family: 'Roboto', sans-serif;
+        background: rgba(255,255,255,0.3)
+      }
+      #txtCtn{
+        display: none;
+      }
+      .hider{
+        display: none;
+      }
+      .showr{
+        display: block;
+      }
+    </style>
+
+    <canvas width="{{w}}" height="{{h}}" id="pCanvas"></canvas>
+    <canvas width="{{w}}" height="{{h}}" id="undo_canvas"></canvas>
+    <canvas width="{{w}}" height="{{h}}" id="tmpCanvas" on-track="handleTrack" on-down="onDown" on-up="onUp"></canvas>
+    <textarea id="textTool" class$="{{computeHide(texthide)}}" style$="{{computeTextCSS(textcss,fontsize,fontfamily,fontcolor)}}"></textarea>
+    <div id="txtCtn"></div>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'felt-canvas',
+
+      properties: {
+        size:{
+          type:Number,
+          value:3,
+          observer: 'sizeChange'
+        },
+        color:{
+          type:String,
+          observer: 'colorChange'
+        },
+        tool:{
+          type:String,
+          value:'pen',
+          observer: 'toolChange'
+        },
+        font: {
+          type: String,
+          observer: 'fontChange'
+        },
+        stroke: {
+          type: String,
+          observer: 'strokeChange'
+        },
+        narrow: {
+          type: Boolean,
+          observer: 'narrowChange'
+        },
+        h: {
+          //thse must be changed in felt-app.css as well
+          type: Number,
+          value: 880
+        },
+        w: {
+          type: Number,
+          value: 660
+        },
+        socket: {
+          type: String
+        }
+      },
+
+      gotWs: function(gesture) {
+        var pts=gesture.points;
+        var points = [];
+        for(var i=0; i<pts.length; i+=2) {
+          points.push({x:pts[i],y:pts[i+1]});
+        }
+        gesture.points=points;
+        this.finalRender(gesture);
+      },
+
+      finalRender: function(r) {
+        this.colorLayerData = this.pCtx.getImageData(0, 0, this.w, this.h);
+        if(r.tool==='fill') {
+          var c={};
+          c.r=this.curColor.r;c.g=this.curColor.g;c.b=this.curColor.b;
+          var cols=r.color.split('(');
+          cols=cols[1].split(',');
+          this.curColor.r=cols[0];
+          this.curColor.g=cols[1];
+          this.curColor.b=cols[2];
+          this.paintAt(r.points[0].x,r.points[0].y);
+          this.curColor.r=c.r;this.curColor.g=c.g;this.curColor.b=c.b;
+        }
+        else if(r.tool==='text') {
+          this.onRenderText(r.fs,r.ff,r.fc,r.lines,r.w,r.l,r.t);
+        }
+        else{
+        var outline=false;
+          var obj={ctx:this.pCtx,tool:r.tool,points:r.points,color:r.color,size:r.size,strokeColor:null,strokeWidth:null};
+          if(r.stroke){
+            var args=r.stroke.split(' ');
+            obj.strokeWidth=args[1];
+            obj.strokeColor=args[0];
+            outline=true;
+          }
+          this.prepareRender(obj,outline);
+        }
+      },
+
+      behaviors: [
+        Polymer.IronResizableBehavior
+      ],
+
+      listeners: {
+        'iron-resize': '_onIronResize'
+      },
+
+      _onIronResize: function() {
+        //resizes canvases if under 640px width
+        if(this.narrow) {
+          this.ratio=window.innerWidth/this.w;
+          var ratio=this.ratio;
+          this.transform('scale('+ratio+','+ratio+') translate3d(0px,' + ((this.h-(this.h/ratio))/2) + 'px,0)', this.$.pCanvas);
+          this.transform('scale('+ratio+','+ratio+') translate3d('+((this.w-(this.w/ratio))/2)+'px,' + ((this.h-(this.h/ratio))/2) + 'px,0)', this.$.tmpCanvas);
+        }
+        else{
+          this.ratio=1;
+        }
+        this.fire('ratio-change',{ratio:this.ratio});
+      },
+
+      narrowChange: function() {
+        //this fires only when narros switches; scales to full size
+        if(!this.narrow) {
+          this.transform('scale(1,1)', this.$.pCanvas);
+          this.transform('scale(1,1)', this.$.tmpCanvas);
+        }
+      },
+
+      sizeChange: function() {
+        if(this.tool==='text') {
+          this.fontsize='font-size:'+this.size+'px;';
+        }
+        else {
+          this.ctx.lineWidth=this.size;
+          this.pCtx.lineWidth=this.size;
+        }
+      },
+
+      colorChange: function() {
+        if(this.tool==='text') {
+          this.fontcolor='color:'+this.color+';';
+        }
+        else if(this.tool==='fill') {
+          var cols=this.color.split('(');
+          cols=cols[1].split(',');
+          this.curColor.r=cols[0];
+          this.curColor.g=cols[1];
+          this.curColor.b=cols[2];
+        }
+        else {
+          this.ctx.strokeStyle=this.color;
+          this.ctx.fillStyle=this.color;
+          this.pCtx.strokeStyle=this.color;
+          this.pCtx.fillStyle=this.color;
+        }
+      },
+
+      fontChange: function() {
+        this.fontfamily = 'font-family:'+this.font+';';
+        switch(this.font) {
+          case 'Roboto': this.fontoffset=1.188; break;
+          case 'Raleway': this.fontoffset=1.189; break;
+          case 'Oswald': this.fontoffset=1.499; break;
+          case 'Adamina': this.fontoffset=1.38; break;
+          case 'Amaranth': this.fontoffset=1.253; break;
+          case 'Gruppo': this.fontoffset=1.00; break;
+          case 'Megrin': this.fontoffset=1.13; break;
+          case 'Bangers': this.fontoffset=1.065; break;
+          case 'Orbitron': this.fontoffset=1.00; break;
+          case 'Calligraffitti': this.fontoffset=1.5; break;
+          case 'Quicksand': this.fontoffset=1.19; break;
+          case 'Lobster': this.fontoffset=1.25; break;
+        }
+      },
+
+      toolChange: function() {
+        if(this.tool!=='text') {
+          this.textarea.style.display = 'none';
+          this.textarea.value = '';
+        }
+      },
+
+      strokeChange: function() {
+        var args=this.stroke.split(' ');
+        this.strokeWidth=args[1];
+        this.strokeColor=args[0];
+      },
+
+      computeTextCSS: function(textcss,fontsize,fontfamily,fontcolor) {
+        return textcss + fontsize + fontfamily + fontcolor;
+      },
+
+      computeHide: function(texthide) {
+        return texthide ? 'hider' : 'showr';
+      },
+
+      handleTrack: function(e) {
+        var scaled=this.scaleToCanvas(e);
+        switch(e.detail.state) {
+          case 'start':
+            break;
+          case 'track':
+            if(this.tool==='pen') {
+              this.points.push({x:scaled.x,y:scaled.y});
+              if(this.points.length>240){ //this is around 2048 max message size in olahol/melody/config.go, I have 4096 set
+                this.onUp();
+                return;
+              }
+            }
+            else {
+              scaled=this.points[1]={x:scaled.x,y:scaled.y};
+            }
+            break;
+          case 'end':
+            break;
+        }
+      },
+
+      onDown: function(e) {
+        var scaled=this.scaleToCanvas(e);
+        this.onFinishText();
+        this.points.push({x:scaled.x,y:scaled.y});
+        if(this.tool==='fill') {
+          this.paintAt(scaled.x,scaled.y);
+        }
+      },
+
+      onUp: function() {
+        if(this.tool!=='text') {
+          /*var obj={ctx:this.pCtx,tool:this.tool,points:this.points,color:this.color,size:this.size,strokeColor:this.strokeColor,strokeWidth:this.strokeWidth};
+          this.prepareRender(obj,this.outline);*/
+          this.fireGo();
+        }
+        else if(this.tool==='text') {
+          this.onFinishText();
+        }
+        this.points=[];
+        this.ctx.clearRect(0, 0, this.w, this.h);
+        this.colorLayerData = this.pCtx.getImageData(0, 0, this.w, this.h);
+      },
+
+      fireGo: function() {
+        var obj={tool:this.tool,points:this.points,size:null,color:this.color,stroke:null};
+        if(this.tool!=='fill'){
+          obj.size=this.size;
+          if(this.outline){
+            obj.stroke=this.stroke;
+          }
+        }
+        if(this.socket){
+          this.fire('go',obj);
+        }
+          this.finalRender(obj);
+      },
+
+      fireText: function(fs,ff,fc,lines,w,l,t) {
+        var obj={tool:this.tool,points:this.points,fs:fs,fc:fc,ff:ff,lines:lines,w:w,l:l,t:t};
+        if(this.socket) {
+          this.fire('go-text',obj);
+        }
+          this.finalRender(obj);
+      },
+
+
+      loop: function() { //loop is for tmpCtx
+        if (this.points.length>1) { //only after track begins (single dot will still appear on pCtx, because of render on onUp)
+          this.ctx.clearRect(0, 0, this.w, this.h);
+          var obj={ctx:this.ctx,tool:this.tool,points:this.points,color:this.color,size:this.size,strokeColor:this.strokeColor,strokeWidth:this.strokeWidth};
+          this.prepareRender(obj,this.outline);
+        }
+        window.requestAnimFrame(this.loop.bind(this));
+      },
+
+
+      /*Call this function to render, either from UI or from DB */
+      prepareRender: function(obj,outline) {
+        if(outline) {
+          this.render(obj,true,outline); //stroke
+          this.render(obj,false,outline); //line
+        }
+        else{
+          this.render(obj,false,outline); //line
+        }
+      },
+
+      render: function(obj,stroke,outline) {
+        var fromUI=true;
+        switch(obj.tool) {
+            case 'pen':
+              this.onPaint(obj,stroke);
+              break;
+            case 'line':
+                this.onLine(obj,stroke,false);
+                break;
+            case 'sideline':
+                this.onLine(obj,stroke,true);
+                break;
+            case 'square':
+                this.onRect(obj,stroke,false,outline);
+                break;
+            case 'fillsquare':
+                this.onRect(obj,stroke,true,outline);
+                break;
+            case 'circle':
+                this.onCircle(obj,stroke,false,outline);
+                break;
+            case 'fillcircle':
+                this.onCircle(obj,stroke,true,outline);
+                break;
+            case 'ellipse':
+                this.onEllipse(obj,stroke,false,outline);
+                break;
+            case 'fillipse':
+                this.onEllipse(obj,stroke,true,outline);
+                break;
+            case 'text':
+                this.onText(obj.points,fromUI);
+                break;
+            case 'fill':
+              break;
+          }
+      },
+
+      /*** TOOLS ***/
+
+      scaleToCanvas: function(e) {
+        //var scale=e.target.width/e.target.clientWidth;
+        var scale=1/this.ratio;
+        var rect=e.target.getBoundingClientRect();
+        if(this.tool==='text') {
+          return {x:Math.round(e.detail.x-rect.left), y:Math.round(e.detail.y-rect.top)};
+        }
+        else{ return {x:Math.round(scale*(e.detail.x-rect.left)), y:Math.round(scale*(e.detail.y-rect.top))}; }
+        //return {x:Math.round(e.detail.x/this.ratio), y:Math.round(e.detail.y/this.ratio)}
+      },
+
+        //stroke first runs true, then false
+      checkStroke: function(obj,stroke,fill) { // if fill, body first then stroke
+      var tmpCtx=obj.ctx;
+      if(!fill){
+        if((stroke)){
+          tmpCtx.lineWidth=obj.size+parseInt(obj.strokeWidth);
+          tmpCtx.strokeStyle=obj.strokeColor;
+        }
+        else{
+          tmpCtx.lineWidth=obj.size;
+          tmpCtx.strokeStyle=obj.color;
+        }
+      }
+      else{ //FILL
+        if((!stroke)){
+          tmpCtx.lineWidth=parseInt(obj.strokeWidth);
+          tmpCtx.strokeStyle=obj.strokeColor;
+          tmpCtx.fillStyle=obj.color;
+        }
+        else{
+          tmpCtx.lineWidth=obj.size;
+          tmpCtx.strokeStyle=obj.color;
+          tmpCtx.fillStyle=obj.color;
+        }
+      }
+      },
+
+      onPaint: function(obj,stroke) {
+        var points=obj.points;
+        var tmpCtx=obj.ctx;
+        this.checkStroke(obj,stroke,false);
+        
+        if (points.length < 3) {
+          var b = points[0];
+          tmpCtx.beginPath();
+          tmpCtx.moveTo(b.x, b.y);
+          tmpCtx.lineTo(b.x+1, b.y+1);
+          tmpCtx.stroke();
+          tmpCtx.closePath();
+          return;
+        }
+
+        tmpCtx.beginPath();
+        tmpCtx.moveTo(points[0].x, points[0].y);
+        for (var i = 1; i < points.length - 2; i++) {
+            var c = (points[i].x + points[i + 1].x) / 2;
+            var d = (points[i].y + points[i + 1].y) / 2;
+            tmpCtx.quadraticCurveTo(points[i].x, points[i].y, c, d);
+        }
+        // For the last 2 points
+        tmpCtx.quadraticCurveTo(
+            points[i].x,
+            points[i].y,
+            points[i + 1].x,
+            points[i + 1].y
+        );
+        tmpCtx.stroke();
+
+      },
+
+      onLine: function(obj,stroke,side) {
+        var points=obj.points;
+        var tmpCtx=obj.ctx;
+        this.checkStroke(obj,stroke,false);
+        tmpCtx.beginPath();
+        tmpCtx.moveTo(points[0].x, points[0].y);
+        if(!side){tmpCtx.lineTo(points[1].x, points[1].y);}
+        else{tmpCtx.lineTo(points[1].x, points[0].y);}
+        tmpCtx.stroke();
+        tmpCtx.closePath();
+      },
+
+      onRect: function(obj,stroke,fill,outline) {
+        var points=obj.points;
+        var tmpCtx=obj.ctx;
+        this.checkStroke(obj,stroke,fill);
+          var x = Math.min(points[1].x, points[0].x);
+          var y = Math.min(points[1].y, points[0].y);
+          var width = Math.abs(points[1].x - points[0].x);
+          var height = Math.abs(points[1].y - points[0].y);
+          if(!fill){tmpCtx.strokeRect(x, y, width, height);}
+          else{
+            if(!outline){tmpCtx.fillRect(x, y, width, height);}
+            else{
+              if(stroke){tmpCtx.fillRect(x, y, width, height);}
+              else{tmpCtx.strokeRect(x, y, width, height);}
+            }
+          }
+      },
+
+      onCircle: function(obj,stroke,fill,outline) {
+        var points=obj.points;
+        var tmpCtx=obj.ctx;
+        this.checkStroke(obj,stroke,fill);
+          var x = (points[1].x + points[0].x) / 2;
+          var y = (points[1].y + points[0].y) / 2;
+
+           var radius = Math.max(
+              Math.abs(points[1].x - points[0].x),
+              Math.abs(points[1].y - points[0].y)
+          ) / 2;
+       
+          tmpCtx.beginPath();
+          tmpCtx.arc(x, y, radius, 0, Math.PI*2, false);
+          // tmpCtx.arc(x, y, 5, 0, Math.PI*2, false);
+          if(!fill){
+            tmpCtx.stroke();
+          }
+          else{
+            if(!outline){tmpCtx.fill();}
+            else{ //fill with outline is opposite(stroke on top)
+              if(stroke){tmpCtx.fill();}
+              else{tmpCtx.stroke();}
+            }
+          }
+          tmpCtx.closePath();
+      },
+
+      onEllipse: function(obj,stroke,fill,outline) {
+        var points=obj.points;
+        var ctx=obj.ctx;
+        this.checkStroke(obj,stroke,fill);
+          //http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+          var x = Math.min(points[1].x, points[0].x);
+          var y = Math.min(points[1].y, points[0].y);
+          var w = Math.abs(points[1].x - points[0].x);
+          var h = Math.abs(points[1].y - points[0].y);
+
+          var kappa = 0.5522848,
+          ox = (w / 2) * kappa, // control point offset horizontal
+          oy = (h / 2) * kappa, // control point offset vertical
+          xe = x + w,           // x-end
+          ye = y + h,           // y-end
+          xm = x + w / 2,       // x-middle
+          ym = y + h / 2;       // y-middle
+
+          ctx.beginPath();
+          ctx.moveTo(x, ym);
+          ctx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+          ctx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+          ctx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+          ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+          
+          if(!fill){
+            ctx.stroke();
+          }
+          else{
+            if(!outline){ctx.fill();}
+            else{ //fill with outline is opposite(stroke on top)
+              if(stroke){ctx.fill();}
+              else{ctx.stroke();}
+            }
+          }
+          ctx.closePath();
+      },
+
+      paintAt: function (startX,startY) {
+
+        var pixelPos = (startY * this.canvasWidth + startX) * 4,
+            r = this.colorLayerData.data[pixelPos],
+            g = this.colorLayerData.data[pixelPos + 1],
+            b = this.colorLayerData.data[pixelPos + 2];
+
+        if (r === parseInt(this.curColor.r) && g === parseInt(this.curColor.g) && b === parseInt(this.curColor.b)) {
+            // Return because trying to fill with the same color
+            return;
+        }
+        this.floodFill(startX, startY, r, g, b);
+
+        this.pCtx.putImageData(this.colorLayerData, 0, 0);
+      },
+
+      floodFill: function (startX, startY, startR, startG, startB) {
+        var newPos,
+            x,
+            y,
+            pixelPos,
+            reachLeft,
+            reachRight,
+            drawingBoundLeft = 0,
+            drawingBoundTop = 0,
+            drawingBoundRight = this.canvasWidth - 1,
+            drawingBoundBottom = this.canvasHeight - 1,
+            pixelStack = [[startX, startY]];
+
+        while (pixelStack.length) {
+            newPos = pixelStack.pop();
+            x = newPos[0];
+            y = newPos[1];
+            // Get current pixel position
+            pixelPos = (y * this.canvasWidth + x) * 4;
+
+            // Go up as long as the color matches and are inside the canvas
+            while (y >= drawingBoundTop && this.matchStartColor(pixelPos, startR, startG, startB)) {
+                y -= 1;
+                pixelPos -= this.canvasWidth * 4;
+            }
+
+            pixelPos += this.canvasWidth * 4;
+            y += 1;
+            reachLeft = false;
+            reachRight = false;
+
+            // Go down as long as the color matches and in inside the canvas
+            while (y <= drawingBoundBottom && this.matchStartColor(pixelPos, startR, startG, startB)) {
+                y += 1;
+
+                this.colorPixel(pixelPos, this.curColor.r, this.curColor.g, this.curColor.b);
+
+                if (x > drawingBoundLeft) {
+                    if (this.matchStartColor(pixelPos - 4, startR, startG, startB)) {
+                        if (!reachLeft) {
+                            // Add pixel to stack
+                            pixelStack.push([x - 1, y]);
+                            reachLeft = true;
+                        }
+                    } else if (reachLeft) {
+                        reachLeft = false;
+                    }
+                }
+
+                if (x < drawingBoundRight) {
+                    if (this.matchStartColor(pixelPos + 4, startR, startG, startB)) {
+                        if (!reachRight) {
+                            // Add pixel to stack
+                            pixelStack.push([x + 1, y]);
+                            reachRight = true;
+                        }
+                    } else if (reachRight) {
+                        reachRight = false;
+                    }
+                }
+
+                pixelPos += this.canvasWidth * 4;
+            }
+        }
+      },
+
+      matchStartColor: function (pixelPos, startR, startG, startB) {
+
+        var r = this.colorLayerData.data[pixelPos],
+            g = this.colorLayerData.data[pixelPos + 1],
+            b = this.colorLayerData.data[pixelPos + 2];
+            //a = this.outlineLayerData.data[pixelPos + 3];
+
+        // If the current pixel matches the clicked color
+        if (r === startR && g === startG && b === startB) {
+            return true;
+        } else {
+            return false;
+        }
+
+      },
+
+      colorPixel: function (pixelPos, r, g, b, a) {
+
+        this.colorLayerData.data[pixelPos] = r;
+        this.colorLayerData.data[pixelPos + 1] = g;
+        this.colorLayerData.data[pixelPos + 2] = b;
+        this.colorLayerData.data[pixelPos + 3] = a !== undefined ? a : 255;
+      },
+
+      onText: function(points) {
+        var x = Math.min(points[1].x, points[0].x);
+        var y = Math.min(points[1].y, points[0].y);
+        var width = Math.abs(points[1].x - points[0].x);
+        var height = Math.abs(points[1].y - points[0].y);
+
+        if(width>(this.w-x)) {
+          width=this.w-x;
+        }
+        if(height>(this.h-y)) {
+          height=this.h-y;
+        }
+
+        this.textcss='left:'+x+'px;top:'+y+'px;width:'+width+'px;height:'+height+'px;';
+        this.texthide=false;
+      },
+
+      onFinishText: function() { if(this.textarea.value!=='') { //this runs stricly from UI
+
+        var textarea=this.textarea;
+        var taCompStyle = getComputedStyle(textarea);
+        var fs = taCompStyle.getPropertyValue('font-size');
+        var ff = taCompStyle.getPropertyValue('font-family');
+        var fc = taCompStyle.getPropertyValue('color');
+        var w=parseInt(this.textarea.style.width);
+        var l = parseInt(this.textarea.style.left);
+        var t=parseInt(this.textarea.style.top);
+
+        var lines = this.textarea.value.split('\n');
+
+        //this.onRenderText(fs,ff,fc,lines,w,l,t);
+
+        // clear textarea;
+        //this.textarea.style.display = 'none';
+        this.texthide=true;
+        this.textarea.value = '';
+
+        this.fireText(fs,ff,fc,lines,w,l,t);
+      }},
+
+      onRenderText: function(fs,ff,fc,lines,w,l,t) {
+
+        var tmpCtx=this.pCtx;
+        var tmpTxtCtn=this.tmpTxtCtn;
+        var processedLines = [];
+        
+        for (var i = 0; i < lines.length; i++) {
+            var chars = lines[i].length;
+            
+            for (var j = 0; j < chars; j++) {
+                var textNode = document.createTextNode(lines[i][j]);
+                tmpTxtCtn.appendChild(textNode);
+                
+                // Since tmpTxtCtn is not taking any space
+                // in layout due to display: none, we gotta
+                // make it take some space, while keeping it
+                // hidden/invisible and then get dimensions
+                tmpTxtCtn.style.position   = 'absolute';
+                tmpTxtCtn.style.visibility = 'hidden';
+                tmpTxtCtn.style.display    = 'block';
+                
+                var width = tmpTxtCtn.offsetWidth;
+                //var height = tmpTxtCtn.offsetHeight;
+                
+                tmpTxtCtn.style.position   = '';
+                tmpTxtCtn.style.visibility = '';
+                tmpTxtCtn.style.display    = 'none';
+                
+                // Logix
+                // console.log(width, parseInt(textarea.style.width));
+                if (width > w) {
+                    break;
+                }
+            }
+            
+            processedLines.push(tmpTxtCtn.textContent);
+            tmpTxtCtn.innerHTML = '';
+        }
+        
+        //get the scale
+        //var scale=this.$.tmpCanvas.width/this.$.tmpCanvas.clientWidth;
+        var scale=1/this.ratio;
+        //change the font size to scale
+        fs=Math.round(parseInt(fs)*scale)+'px';
+
+        tmpCtx.font = fs + ' ' + ff;
+        tmpCtx.textBaseline = 'top';
+        tmpCtx.fillStyle = fc;
+
+        for (var n = 0; n < processedLines.length; n++) {
+            var processedLine = processedLines[n];
+            tmpCtx.fillText(
+                processedLine,
+                //scale the placement of the text finally
+                Math.round(scale*(l+3)),
+                Math.round(scale*((t+3) + this.fontoffset*n*parseInt(fs)))
+            );
+        }
+        
+        
+
+        //this.pCtx.drawImage(this.$.tmpCanvas, 0, 0);
+      },
+
+
+      setup: function() {
+        this.pCtx.rect(0,0,this.w,this.h);
+        this.pCtx.fillStyle='white';
+        this.pCtx.fill();
+        //initialize options
+        // ctx.lineWidth = options.size || Math.ceil(Math.random() * 35);
+        this.ctx.lineCap = 'round';
+        this.ctx.lineWidth=3;
+        this.ctx.strokeStyle='black';
+        this.ctx.fillStyle='black';
+
+        this.pCtx.lineCap = 'round';
+        this.pCtx.lineWidth=3;
+        this.pCtx.strokeStyle='black';
+        this.pCtx.fillStyle='black';
+
+        this.canvasWidth=this.w;
+        this.canvasHeight=this.h;
+        this.colorLayerData = this.pCtx.getImageData(0, 0, this.canvasWidth, this.canvasHeight);
+        this.curColor = {r:0,g:0,b:0};
+      },
+
+      created: function() {
+        this.ctx={};
+        this.pCtx={};
+        this.curColor={};
+        this.textarea={style:{}};
+      },
+
+      ready: function() {
+        this.points=[];
+        //ctx is for drawing, pCtx is for saving
+        this.ctx = this.$.tmpCanvas.getContext('2d');
+        this.pCtx = this.$.pCanvas.getContext('2d');
+        this.pCtx.imageSmoothingEnabled = false;
+        this.ctx.imageSmoothingEnabled = false;
+        this.ctx.translate(0.5, 0.5);
+        this.pCtx.translate(0.5, 0.5);
+        //text area
+        this.textarea=this.$.textTool;
+        //text processing div
+        this.tmpTxtCtn=this.$.txtCtn;
+        //text properties ()
+        this.textcss='';
+        this.fontsize='16px';
+        this.fontcolor='black';
+        this.fontfamily='Roboto';
+        this.fontoffset=1.17; // offset for vertical scaleing of text lines
+        this.texthide=true;
+        
+        this.outline=true;
+        this.strokeWidth=0;
+        this.strokeColor='rgba('+Math.round(Math.random()*255)+','+Math.round(Math.random()*255)+','+Math.round(Math.random()*255)+')';
+        
+        this.setup();
+        window.requestAnimFrame(this.loop.bind(this));
+
+        this.keyStore='';
+
+      },
+//636 x 848   grid of 53x53 blocks, 12x16
+//648x864
+//660x880   55px
+
+       /*
+          Iphones are 375x667   (600/375=1.6) 64px toolbar + 3px
+          galaxys are 360x640   (576/360=1.6) 64px toolbar
+          - a 64 toolbar on each makes exactly 1.6 ratios
+          
+
+          640x800 is a 4/5 ratio, 1.25
+          640x845 makes a 1.32 ratio (iphone6 with safari screen + 64px toolbar) 540800
+          640x853 3:4 = 375:500 (iphone 6 is 375 wide) 545920
+          640x960 for 1.5: iphone six toolbar only (no safari bars) 614400
+        */
+    });
+  </script>
+</dom-module>

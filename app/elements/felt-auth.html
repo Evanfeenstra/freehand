@@ -1,0 +1,534 @@
+
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
+
+
+<dom-module id="felt-auth">
+
+  <style>
+    :host{
+      margin-top:12px;
+    }
+      iron-icon {
+        margin-right: 9px;
+      }
+
+      .sign-in {
+        display: inline-block;
+        color: white;
+        width: 290px;
+        border-radius: 5px;
+        white-space: nowrap;
+        margin:8px 0;
+        transition: all 300ms ease-in;
+        -webkit-transition: all 300ms ease-in;
+        text-align:left;
+        padding:0 !important;
+        text-transform: none !important;
+      }
+
+      #goog{
+        background: rgb(214,65,54);
+      }
+
+      #faceboo{
+        background: rgb(75,110,170);
+      }
+
+      .sign-in:hover {
+        cursor: pointer;
+      }
+
+      .google-sign-in-icon {
+        background: url('/images/google.png') transparent 5px 50% no-repeat;
+        display: inline-block;
+        vertical-align: middle;
+        width: 42px;
+        height: 42px;
+        border-right: gray 1px solid;
+      }
+
+      .facebook-sign-in-icon {
+        background: url('/images/facebook.png') transparent 5px 50% no-repeat;
+        display: inline-block;
+        vertical-align: middle;
+        width: 42px;
+        height: 42px;
+        border-right: gray 1px solid;
+      }
+
+      .sign-in-label {
+        font-size: 14px;
+        width:100%;
+        /* Use the Roboto font that is loaded in the <head> */
+        font-family: 'Roboto', sans-serif;
+      }
+
+      .mid{
+        text-align: center;
+        display: inline-block;
+        width:200px;
+      }
+
+      .trans{
+        transform: translateY(-58px);
+        -webkit-transform: translateY(-58px);
+      }
+      .trans2{
+        transform: translateY(-116px);
+        -webkit-transform: translateY(-116px);
+      }
+      .trans3{
+        transform: translateY(-450px);
+        -webkit-transform: translateY(-450px);
+      }
+      #saveandload{
+        text-align: center;
+        width:300px;
+        transition: all 300ms ease-in;
+        -webkit-transition: all 300ms ease-in;
+      }
+      #submit{
+        transition: all 300ms ease-in;
+        -webkit-transition: all 300ms ease-in;
+      }
+
+      #emailpass{
+        text-align: center;
+        width:300px;
+        margin-top:14px;
+        transition: all 300ms ease-in;
+        -webkit-transition: all 300ms ease-in;
+        /*height: 242px;*/
+      }
+
+      .button {
+        color: #fff;
+        background-color: #26a69a;
+        text-align: center;
+        letter-spacing: .5px;
+        cursor: pointer; 
+        border: none;
+        border-radius: 2px;
+        display: inline-block;
+        height: 36px;
+        line-height: 36px;
+        outline: 0;
+        padding: 0 2rem;
+        vertical-align: middle;
+        margin-top:15px;
+        text-transform: none !important;
+      }
+
+      #submit:hover {
+          background-color: #2bbbad; }
+
+      #register{
+        text-decoration: underline;
+        text-transform: none !important;
+        color:#1bab9d;
+        display: inline-block;
+        margin-bottom: 19px;
+        cursor: pointer;
+      }
+      #register:hover{
+        color:#0b9b8d;
+
+      }
+
+      #passagain{
+        opacity: 0;
+        transition: opacity 300ms ease-in;
+        -webkit-transition: opacity 300ms ease-in;
+      }
+
+      #social{
+        margin-top:10px;
+        transition: opacity 300ms ease-in;
+        -webkit-transition: opacity 300ms ease-in;
+      }
+
+      #inputs{
+        transition: opacity 300ms ease-in;
+        -webkit-transition: opacity 300ms ease-in;
+      }
+
+      #errory{
+        transition: all 300ms ease-in;
+        -webkit-transition: all 300ms ease-in;
+      }
+
+      #sition{
+        transition: all 300ms ease-in;
+        -webkit-transition: all 300ms ease-in;
+      }
+      #noaccount{
+        transition: opacity 300ms ease-in;
+        -webkit-transition: opacity 300ms ease-in;
+        margin-top:8px !important;
+        margin-top: 16px;
+        display: inline-block;
+      }
+      #backdrop{
+        position: absolute;
+        top:-50px;
+        bottom: 0;
+        left:0;
+        right:0;
+        height:490px;
+        background: radial-gradient(rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.3) 6%,transparent 60%); /* Standard syntax */
+        text-align: center;
+      }
+      #errory{
+        background-color:rgba(255,0,0,0.5);
+        padding:10px 10px;
+        text-align: center;
+        width:260px;
+        color:white;
+        font-family: 'Roboto', sans-serif;
+          font-size: 14px;
+          -webkit-font-smoothing: antialiased;
+      }
+      #deleter{
+        width:300px;
+        margin-bottom: 22px;
+        margin-top:15px;
+      }
+      
+
+  </style>
+  <style include="iron-flex iron-flex-alignment"></style>
+  <template>
+
+        <div id="social" class="vertical layout" style$="[[_socialStyle(createAccount,user)]]">
+          <paper-button class="sign-in" id="goog"
+           tabindex="0"
+           on-tap="signGoogle" disabled="[[disable2(user,createAccount)]]">
+            <span class="google-sign-in-icon"></span>
+            <div class="mid"><span class="sign-in-label">Sign In with Google</span></div>
+          </paper-button>
+          <paper-button id="faceboo"
+           tabindex="1" class="sign-in"
+           on-tap="signFacebook" disabled="[[disable2(user,createAccount)]]">
+            <span class="facebook-sign-in-icon"></span>
+            <div class="mid"><span class="sign-in-label">Sign In with Facebook</span></div>
+          </paper-button>
+        </div>
+
+        <div id="emailpass" class$="[[_emailpassClass(createAccount)]]" style$="[[_emailpassStyle(user)]]">
+          <div id="inputs">
+            <strong>[[_OrString(createAccount)]]</strong>
+            <paper-input id="email" label="User Name:" disabled="[[disabler(user)]]" on-keypress="_enter" prevent-invalid-input allowed-pattern="[a-zA-Z0-9.@!?-]+" maxlength="20"></paper-input>
+            <paper-input id="password" label="Password:" disabled="[[disabler(user)]]" on-keypress="_enter" prevent-invalid-input maxlength="20"></paper-input>
+            <paper-input id="passagain" label="Password again:" disabled="[[disabler(user)]]" style$="[[_passagainStyle(createAccount)]]" on-keypress="_enter" prevent-invalid-input></paper-input>
+            <div id="sition" class$="[[_submitClass(createAccount)]]">
+              <paper-button id="submit" class="button" on-tap="submit" disabled="[[disabler(user)]]">[[_Submit(user,createAccount)]]</paper-button>
+              <div id="noaccount">[[_accountString(createAccount)]]<paper-button on-tap="register" id="register" disabled="[[disabler(user)]]">[[_registerString(createAccount)]]</paper-button></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="saveandload" class$="[[_saveClass(user)]]">
+          <div hidden$="{{hideDrawings(user,socket)}}">
+            <paper-input id="save" on-keypress="_enterSave" label="Save your drawing" prevent-invalid-input allowed-pattern="[a-zA-Z0-9.!?-]+" maxlength="12"></paper-input>
+            <paper-button class="button" on-tap="save">Save</paper-button>
+            <div style="margin-top:40px">Your Drawings:</div>
+          </div>
+          <template is="dom-repeat"
+              items="{{drawings}}"
+              as="drawing"
+              filter="{{_computeFilter(filterBy)}}"
+              observe="isComplete"
+              >
+              <felt-loader drawing="{{drawing}}" class="horizontal layout justified center" index="{{index}}"></felt-loader>
+          </template>
+        </div>
+            
+        <div id="errory" class$="[[_errorClass(createAccount)]]"></div>
+
+        <div id="backdrop"><img src="../images/spinner128.gif" height="50px" width="50px" style="margin-top:215px"/></div>
+
+        <felt-db id="db" user="{{user}}" provider="[[provider]]" remote-origin="{{remoteOrigin}}" on-error="doerror" drawings="{{drawings}}" socket="{{socket}}" client-origin="{{clientOrigin}}" remote-scheme="{{remoteScheme}}"></felt-db>
+
+  </template>
+
+  <script>
+
+    Polymer({
+
+      is: 'felt-auth',
+
+      properties: {
+
+        user: {
+          type: Object,
+          observer: 'userChange',
+          value:null
+        },
+
+        userName: {
+          type: String,
+          notify: true
+        },
+
+        pic: {
+          type: String,
+          notify: true
+        },
+
+        socket: {
+          type: String,
+          value: null
+        },
+
+        drawings: Array
+
+      },
+
+    _enter: function(e) {
+      if (e.keyCode === 13) {
+        e.preventDefault();
+        this.submit();
+      }
+    },
+
+    _enterSave: function(e) {
+      if (e.keyCode === 13) {
+        e.preventDefault();
+        this.save();
+      }
+    },
+
+    hideDrawings: function(user, socket) {
+      if(user && socket) {
+        return false
+      } else {
+        return true
+      }
+    },  
+
+    save: function() {
+      if(this.$.save.value){
+        this.$.db.save(this.$.save.value)
+        this.$.save.value=null
+      }
+    },
+
+    load: function(e) {
+      this.$.db.load(e)
+    },
+
+    delete: function(e) {
+      this.$.db.delete(e)
+    },
+
+    userChange: function() {
+      this.drawings=[]
+      //console.log("User: ",this.user)
+      this.$.backdrop.style.display="none"
+      this.$.errory.style.display="none"
+      this.createAccount=false;
+        if(this.user){
+          this.userName = this.user.username
+          this.pic = this.user.pic
+          //else if(this.user.provider=='password') { //login w password
+            this.$.inputs.style.opacity=0.0;
+            this.$.noaccount.style.opacity=0.0;
+          //}
+        }
+        else{ //logout
+          this.userName=null
+          this.$.inputs.style.opacity=1.0;
+          this.$.noaccount.style.opacity=1.0;  
+        }
+    },
+
+    ready: function() {
+      this.$.backdrop.style.display="none"
+      this.$.errory.style.display="none"
+      this.userName=null
+      this.createAccount=false;
+
+      this.deleteoff=true
+    },
+
+    signOut: function() {
+      this.$.db.logout();
+    },
+
+    signGoogle: function() {
+      this.$.backdrop.style.display="block"
+      this.async(function() {
+        this.$.backdrop.style.display="none"
+      },9000)
+      if(this.user) {
+        this.$.db.logout();
+      }
+      else{
+        this.provider="google"
+        this.$.db.login();
+      }
+    },
+
+    signFacebook: function() {
+      this.$.backdrop.style.display="block"
+      this.async(function() {
+        this.$.backdrop.style.display="none"
+      },9000)
+      if(this.user) {
+        this.$.db.logout();
+      }
+      else{
+        this.provider="facebook"
+        this.$.db.login();
+      }
+    },
+
+    logout: function() {
+      this.$.db.logout()
+    },
+
+    submit: function() {
+      if(this.user) {
+        this.$.backdrop.style.display="block"
+        this.async(function() {
+          this.$.backdrop.style.display="none"
+        },9000)
+        this.$.db.logout();
+      }
+      else{
+        if(this.$.email.value && this.$.password.value) {
+          this.$.backdrop.style.display="block"
+          this.async(function() {
+            this.$.backdrop.style.display="none"
+          },9000)
+          if(!this.createAccount){
+            this.provider="password"
+            this.$.db.login({"username":this.$.email.value,"password":this.$.password.value});
+          }
+          else{
+            this.provider="password"
+            var pass=this.$.password.value;
+            var pass2=this.$.passagain.value;
+            if(pass==pass2){
+              this.$.db.createUser(this.$.email.value,pass);
+            }
+            else{
+              this.doerror({detail:'Passwords do not match'})
+            }
+          }
+        }
+      }
+    },
+
+    userCreated: function(e) {
+      this.$.db.login({"email":this.$.email.value,"password":this.$.password.value});
+    },
+
+    register: function() {
+      this.$.errory.style.display="none"
+      if(!this.createAccount){
+        this.createAccount=true;
+      }
+      else{
+        this.createAccount=false;
+      }
+    },
+
+    /*COMPUTED FUNCTIONS*/
+
+    disabler: function(user) {
+      return user ? true : false
+    },
+
+    disable2: function(user,createAccount) {
+      return user || createAccount ? true : false
+    },
+
+    _Submit: function(user,createAccount){
+      var a="Log In"
+      if(!user){  
+        if(createAccount){
+          a="Register"
+        }
+      }
+      else{
+        a="Log Out"
+        
+      }
+      return a
+    },
+
+    _OrString: function(createAccount) {
+      return createAccount ? "Create Account": "Or"
+    },
+
+    _accountString: function(createAccount) {
+      return createAccount ? "Already have an account?": "Don't have an account yet?"
+    },
+
+    _registerString: function(createAccount) {
+      return createAccount ? "Sign In": "Register"
+    },
+
+    _errorClass: function(createAccount) {
+      return createAccount ? "trans2" : "trans"
+    },
+
+    _saveClass: function(user) {
+      return user ? "trans3" : ""
+    },
+
+    _submitClass: function(createAccount) {
+      return createAccount ? "" : "trans"
+    },
+
+    _emailpassClass: function(createAccount) {
+      return createAccount ? "vertical layout trans2": "vertical layout";
+    },
+
+    _socialStyle: function(createAccount,user) {
+      return createAccount || user ? "opacity:0;": "opacity:1;";
+    },
+
+    _emailpassStyle: function(user) {
+      var a="opacity:1;"
+      if(user){
+        if(user.provider!='password'){
+          a="opacity:0;"
+        }
+      }
+      return a
+    },
+
+    _passagainStyle: function(createAccount) {
+      return createAccount ? "opacity:1;": "opacity:0;";
+    },
+
+    doerror: function(e) {
+      this.$.backdrop.style.display="none"
+      //console.log('error: ',String(e.detail))
+      this.$.errory.style.display="block"
+      this.$.errory.innerHTML=String(e.detail)
+      this.async(function() {
+        this.$.errory.style.display="none"
+      },5000)
+    },
+/*
+    overwrite: function(e) {
+      this.fire("overwrite",e.detail)
+    },
+
+    msg: function(e) {
+      this.fire("msg",e.detail)
+    },
+
+*/
+
+ });
+
+  </script>
+
+</dom-module>

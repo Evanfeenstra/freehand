@@ -1,0 +1,359 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+<link rel="import" href="felt-item.html">
+
+
+<dom-module id="felt-menu">
+  <template>
+    <style>
+      :host{
+        display: block;
+        --paper-dropdown-menu-input: {
+          font-family: 'Oswald';
+        };
+      }
+      paper-toolbar {
+        background-color: #42A5F5;
+        border-right: 1px solid #ccc;
+      }
+      .list {
+        padding: 0;
+      }
+      #container{
+        width:100%;
+        height:100%;
+        max-width:640px;
+        background-color: #ffffff;
+        border-right: 1px solid grey;
+        border-left: 1px solid grey;
+        /*box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.4);*/
+      }
+      .list felt-item {
+        height: 73px;
+        border-bottom: 1px solid #aaaaaa;
+        border-top: 1px solid #aaaaaa;
+        background-color: #eeeeee;
+      }
+      .shape-icon {
+        margin:8px;
+      }
+      .dropdown-content {
+        width: 200px;  
+        --paper-menu: {
+          background-color:#eeeeee;
+        };   
+      }
+      .last-sub{
+        margin-bottom: 30px;
+      }
+      .sub{
+        background: linear-gradient(to right bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.0980392)) !important;
+        outline: 1px solid #ccc;
+        margin-top: 1px;
+        
+      }
+      paper-menu{
+        border-bottom:2px solid #ccc;
+      }
+      paper-tabs{
+        background-color: rgba(66,165,245,0.5);
+        width:100%;
+      }
+      .bounder{
+        width:246px;
+        margin: 16px 0px 24px 0px;
+        border:1px solid rgba(0,0,0,0.4);
+        box-shadow: 3px 3px 6px -3px rgba(0, 0, 0, 0.4);
+        background-color: white;
+        overflow: hidden;
+      }
+      .slidey{
+        width:492px;
+        -webkit-transition: all 250ms ease-in;
+        -moz-transition: all 250ms ease-in;
+        -o-transition: all 250ms ease-in;
+        transition: all 250ms ease-in;
+      }
+
+      #add-page{
+        height:56px;
+        width:56px;
+      }
+
+      #page-section{
+        margin:8px 16px;
+      }
+
+      felt-item{
+        outline:none;
+      }
+
+    </style>
+    <style include="iron-flex iron-flex-alignment"></style>
+
+    <div class="layout vertical center" style="height:100%;">
+      <div id="container">
+
+      <div id="menu" class="list">
+
+        <div>
+        <felt-item class="item horizontal layout around-justified center" name="pen" data-index="0" on-tap="collapser" icon="felt-icons:mode-edit" label="Pen" id="penitem"></felt-item>
+        <iron-collapse class="sub vertical layout center" on-down="pd">
+            <div class="bounder">
+              <paper-tabs selected="0" on-iron-select="tabs1">
+                <paper-tab>Main</paper-tab>
+                <paper-tab>Outline</paper-tab>
+              </paper-tabs>
+              <div id="slide1" class="slidey horizontal layout">
+                <div style="padding-left:13px;">
+                  <felt-size initial="27" id="pensize" on-pick="sizeChange"></felt-size>
+                  <felt-color initial-rgb="[[randomRgb1]]" id="pencolor" on-pick="colorChange"></felt-color>
+                </div>
+                <felt-stroke initial-size="6" initial-rgb="[[randomRgb2]]" id="penstroke" on-pick-stroke="strokeChange" on-outline="outlineChange" class="last-sub"></felt-stroke>
+              </div>
+            </div>
+        </iron-collapse></div>
+        
+        <div>
+        <felt-item class="item horizontal layout around-justified center" name="shape" data-index="1" on-tap="collapser" icon="{{iconshape}}" label="Shape" ></felt-item>
+        <iron-collapse class="sub vertical layout center" on-down="pd">
+          <div class="horizontal layout center center-justified" style="margin-top:20px;">
+            <paper-icon-button icon="felt-icons:square" class="shape-icon" on-tap="shapeIcon"></paper-icon-button>
+            <paper-icon-button icon="felt-icons:line" class="shape-icon" on-tap="shapeIcon"></paper-icon-button>
+            <paper-icon-button icon="felt-icons:circle" class="shape-icon" on-tap="shapeIcon"></paper-icon-button>
+            <paper-icon-button icon="felt-icons:ellipse" class="shape-icon" on-tap="shapeIcon"></paper-icon-button>
+          </div>
+          <div class="horizontal layout center center-justified">
+            <paper-icon-button icon="felt-icons:fillsquare" class="shape-icon" on-tap="shapeIcon"></paper-icon-button>
+            <paper-icon-button icon="felt-icons:sideline" class="shape-icon" on-tap="shapeIcon"></paper-icon-button>
+            <paper-icon-button icon="felt-icons:fillcircle" class="shape-icon" on-tap="shapeIcon"></paper-icon-button>
+            <paper-icon-button icon="felt-icons:fillipse" class="shape-icon" on-tap="shapeIcon"></paper-icon-button>
+          </div>
+          <div class="bounder">
+            <paper-tabs selected="0" on-iron-select="tabs2">
+              <paper-tab>Main</paper-tab>
+              <paper-tab>Outline</paper-tab>
+            </paper-tabs>
+            <div id="slide2" class="slidey horizontal layout">
+              <div style="padding-left:13px;">
+                <felt-size id="shapesize" on-pick="sizeChange"></felt-size>
+                <felt-color id="shapecolor" on-pick="colorChange"></felt-color>
+              </div>
+              <felt-stroke initial-size="0" id="shapestroke" on-pick-stroke="strokeChange" on-outline="outlineChange" class="last-sub"></felt-stroke>
+            </div>
+          </div>
+        </iron-collapse></div>
+
+        <div>
+        <felt-item class="item horizontal layout around-justified center" name="fill" data-index="2" on-tap="collapser" icon="felt-icons:format-color-fill" label="Fill" ></felt-item>
+        <iron-collapse class="sub vertical layout center">
+          <felt-color id="fillcolor" on-pick="colorChange" label="Fill Color" hide-opacity="true" class="last-sub"></felt-color>
+        </iron-collapse></div>
+
+        <div>
+        <felt-item class="item horizontal layout around-justified center" name="text" data-index="3" on-tap="collapser" icon="felt-icons:format-size" label="Text" ></felt-item>
+        <iron-collapse class="sub vertical layout center" on-down="pd">
+          <paper-dropdown-menu label="Font" id="fontdropdown">
+            <paper-menu class="dropdown-content" on-iron-select="fontSelect">
+              <paper-item style="font-family:'Roboto';">Roboto</paper-item>
+              <paper-item style="font-family:'Raleway';">Raleway</paper-item>
+              <paper-item style="font-family:'Oswald';">Oswald</paper-item>
+              <paper-item style="font-family:'Adamina';">Adamina</paper-item>
+              <paper-item style="font-family:'Amaranth';">Amaranth</paper-item>
+              <paper-item style="font-family:'Gruppo';">Gruppo</paper-item>
+              <paper-item style="font-family:'Megrin';">Megrin</paper-item>
+              <paper-item style="font-family:'Bangers';">Bangers</paper-item>
+              <paper-item style="font-family:'Orbitron';">Orbitron</paper-item>
+              <paper-item style="font-family:'Calligraffitti';">Calligraffitti</paper-item>
+              <paper-item style="font-family:'Quicksand';">Quicksand</paper-item>
+              <paper-item style="font-family:'Lobster';">Lobster</paper-item>
+            </paper-menu>
+          </paper-dropdown-menu>
+          <felt-size text id="textsize" on-pick="sizeChange" initial="16" max="100" style$="{{computeFontStyle(font)}}"></felt-size>
+          <felt-color id="textcolor" on-pick="colorChange" label="Text Color" hide-opacity="true" style$="{{computeFontStyle(font)}}" class="last-sub"></felt-color>
+        </iron-collapse></div>
+
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'felt-menu',
+
+      properties: {
+        size: {
+          type:Number,
+          notify:true
+        },
+        color: {
+          type: String,
+          value: 'rgba(0,0,0,1)',
+          notify:true
+        },
+        tool:{
+          type:String,
+          value:'pen',
+          notify:true
+        },
+        font: {
+          type: String,
+          value:'Roboto',
+          notify: true
+        },
+        stroke: {
+          type: String,
+          value: 'rgba(0,255,0,1) 6',
+          notify:true
+        },
+        outline: {
+          type: Boolean,
+          value: true,
+          notify: true
+        },
+        iconshape: {
+          type:String,
+          value:'felt-icons:square'
+        }
+      },
+
+      tabs1: function(e) {
+        if(e.target.selected===1){this.transform('translate(-246px,0px)',this.$.slide1);}
+        else{this.transform('translate(-0px,0px)',this.$.slide1);}
+      },  
+
+      tabs2: function(e) {
+        if(e.target.selected===1){this.transform('translate(-246px,0px)',this.$.slide2);}
+        else{this.transform('translate(-0px,0px)',this.$.slide2);}
+      },  
+
+      collapser: function(e) {
+        var allSubs = Polymer.dom(this.$.menu).querySelectorAll('.sub');
+        var target=e.target;
+        var i=0;
+        while(true) {
+          if(target.classList.contains('item')) {
+            break;
+          }
+          else{
+            i++;
+            target=e.path[i];
+          }
+        }
+
+        var index=target.getAttribute('data-index');
+        var tool = target.getAttribute('name');
+        this.toolSelect(target, tool);
+
+        for(var j=0; j<allSubs.length; j++) {
+          var s=allSubs[j];
+          if(j!==parseInt(index)) {
+            s.hide();
+            s.style.borderBottom='0px solid #aaa';
+          }
+          else{
+            s.toggle();
+            s.style.borderBottom=s.opened ? '2px solid #aaa' : '0px solid #aaa';
+            //target.style.backgroundColor=s.opened ? '#cccccc' : '#eeeeee';
+          }
+
+          var item=Polymer.dom(s).previousSibling.previousSibling;
+          if(item.getAttribute('name')===this.tool) {
+            item.style.backgroundColor = '#cccccc';
+          } else if(this.tool!=='pen' && this.tool!=='text' && this.tool!=='fill' && item.getAttribute('name')==='shape') {
+            item.style.backgroundColor = '#cccccc';
+          } else {
+            Polymer.dom(s).previousSibling.previousSibling.style.backgroundColor = '#eeeeee';
+          }
+        }
+
+        
+      },
+
+      colorChange: function(e) {
+        this.color=e.detail.color;
+      },
+
+      sizeChange: function(e) {
+        this.size=e.detail.size;
+      },
+
+      strokeChange: function(e) {
+        this.stroke=e.detail.stroke;
+      },
+
+      outlineChange: function(e) {
+        this.outline=e.detail.outline;
+      },
+
+      toolSelect: function(target,tool) {
+
+        if(tool==='pen'){
+          this.tool = tool;
+          this.color=this.$.pencolor.color;
+          this.size=this.$.pensize.size;
+          this.stroke=this.$.penstroke.stroke;
+          this.outline=this.$.penstroke.opened;
+        }
+        else if(tool==='fill'){
+          this.tool = tool;
+          this.color=this.$.fillcolor.color;
+        }
+        else if(tool==='shape') {
+          var icon=target.icon;
+          this.tool=icon.split(':')[1];
+          this.color=this.$.shapecolor.color;
+          this.size=this.$.shapesize.size;
+          this.stroke=this.$.shapestroke.stroke;
+          this.outline=this.$.shapestroke.opened;
+        }
+        else if(tool==='text') {
+          this.tool = tool;
+          this.size=this.$.textsize.size;
+          this.color=this.$.textcolor.color;
+        }
+      },
+
+      shapeIcon:function(e) {
+        var icon=e.target.parentElement.icon;
+        if(e.target.tagName==='PAPER-ICON-BUTTON') {
+          icon=e.target.icon;
+        }
+        this.iconshape=icon;
+        this.tool=icon.split(':')[1];
+      },
+
+      fontSelect: function(e) {
+        this.font=e.detail.item.style.fontFamily;
+      },
+
+      computeFontStyle: function(font) {
+        return 'font-family:'+font;
+      },
+
+      ready: function() {
+        this.size=30;
+        this.stroke=this.$.penstroke.stroke;
+        this.outline=this.$.penstroke.opened;
+
+        this.randomRgb1 = Math.round(Math.random()*255)+','+Math.round(Math.random()*255)+','+Math.round(Math.random()*255);
+        this.randomRgb2 = Math.round(Math.random()*255)+','+Math.round(Math.random()*255)+','+Math.round(Math.random()*255);
+
+        this.$.penitem.style.backgroundColor = '#cccccc';
+      },
+
+      pd: function(e){
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+    });
+  </script>
+</dom-module>

@@ -1,0 +1,132 @@
+
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-meta/iron-meta.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+
+<dom-module id="felt-logo">
+  <style include="iron-flex iron-flex-alignment"></style>
+  <style>
+    :host {
+      @apply(--layout-inline);
+      @apply(--layout-center-center);
+      position: relative;
+
+      vertical-align: middle;
+
+      fill: currentcolor;
+
+      width: var(--iron-icon-width, 24px);
+      height: var(--iron-icon-height, 24px);
+
+      cursor: pointer;
+    }
+
+    .polyline {
+      -webkit-transition: -webkit-transform 400ms ease-in;
+      -moz-transition: -moz-transform 400ms ease-in;
+      -o-transition: -o-transform 400ms ease-in;
+      transition: transform 400ms ease-in;
+    }
+  </style>
+
+  <template>
+    <svg id="logo" on-tap="svgTap" height="40" width="40" viewBox="0 0 24 24">
+
+        <polyline class="polyline" points="4,24 4,20 8,16 8,24 4,24" fill="#FFFFFF"></polyline>
+        <polyline class="polyline" points="4,12 4,4 12,4 4,12" fill="#FFFFFF"></polyline>
+        <polyline class="polyline" points="8,16 12,12 16,12 16,16 8,16" fill="#FFFFFF"></polyline>
+        <polyline class="polyline" points="16,8 20,4 20,8 16,8" fill="#FFFFFF"></polyline>
+
+        <polyline class="polyline" points="0,24 0,16 4,12 4,20 0,24" fill="#E91E63"></polyline>
+        <polyline class="polyline" points="8,12 8,8 16,8 12,12 8,12" fill="#E91E63"></polyline>
+        <polyline class="polyline" points="8,12 8,8 16,8 12,12 8,12" fill="#E91E63"></polyline>
+        <polyline class="polyline" points="12,4 16,0 24,0 20,4 12,4" fill="#E91E63"></polyline>
+
+        <polyline class="polyline" points="4,20 4,12 8,8 8,12 12,12 4,20" fill="#00C300"></polyline>
+        <polyline class="polyline" points="8,8 12,4 20,4 16,8 8,8" fill="#00C300"></polyline>
+
+        <polyline class="polyline" points="0,24 4,20 4,24 0,24" fill="#303F9F"></polyline>
+        <polyline class="polyline" points="8,24 8,16 16,16 8,24" fill="#303F9F"></polyline>
+        <polyline id="laster" style$="{{lasterStyle}}" points="16,16 16,12 12,12 16,8 20,8 20,4 24,0 24,8 16,16" fill="#303F9F"></polyline>
+
+    </svg>
+
+  </template>
+
+  <script>
+
+    Polymer({
+
+      is: 'felt-logo',
+
+      // light yellow: FFF9C4
+      // light blue: B2FBFF
+
+
+      svgTap: function() {
+        if(!this.isAnimating) {
+          this.isAnimating=true;
+          var el=this.$.logo;
+          this.lasterStyle=this.lList[0];
+          this.$.laster.style.opacity=0;
+          for(var i=0; i<12; i++) {
+            this.svgAnim(i,el);
+          }
+          this.async(function() {
+            this.transform('scaleX(-1)',this);
+            this.setTransition(el.childNodes[23],0);
+          },2600);
+          this.async(function() {
+            this.backToStart(el);
+          },2750);
+          this.async(function() {
+            this.transform('scaleX(1)',this);
+            this.lasterStyle=this.lList[1];
+            this.$.laster.style.opacity=1;
+          },2850);
+          this.async(function() {
+            this.isAnimating=false;
+          },3000);
+        }
+      },
+
+      svgAnim: function(i,el) {
+        this.async(function() {
+          this.setTransition(el.childNodes[(i*2+1)],400);
+          this.transform(this.aList[i],el.childNodes[(i*2+1)]);
+          if(i!==0) {
+            this.setTransition(el.childNodes[((i-1)*2+1)],0);
+          }
+        },i*200);
+      },
+
+      backToStart: function(el) {
+        for(var i=0; i<12; i++) {
+          this.transform('translate(0px,0px)',el.childNodes[(i*2+1)]);
+        }
+      },
+
+      ready: function() {
+        this.aList=['translate(-4px,-4px)','translate(-4px,-4px)','translate(8px,-8px)','translate(4px,-4px)','translate(4px,-4px)','translate(4px,-4px)','translate(-4px,-4px)','translate(-8px,0px)','translate(-4px,-4px)','translate(4px,-4px)','translate(8px,-16px)','translate(0px,-8px)'];
+        this.lList=['-webkit-transition: opacity 400ms ease-in;-moz-transition: opacity 400ms ease-in;-o-transition: opacity 400ms ease-in;transition: opacity 400ms ease-in;','-webkit-transition: opacity 0ms ease-in;-moz-transition: opacity 0ms ease-in;-o-transition: opacity 0ms ease-in;transition: opacity 0ms ease-in;'];
+        this.lasterStyle=this.lList[0];
+        this.isAnimating=false;
+
+      },
+
+      setTransition: function(e, ms) {
+        e.style['-webkit-transition'] = '-webkit-transform '+ms+'ms ease-in';
+        e.style['-moz-transition'] = '-moz-transform '+ms+'ms ease-in';
+        e.style['-ms-transition'] = '-ms-transform '+ms+'ms ease-in';
+        e.style['-o-transition'] = '-o-transform '+ms+'ms ease-in';
+        e.style.transition = 'transform '+ms+'ms ease-in';
+      }
+      
+
+    });
+
+  </script>
+
+</dom-module>

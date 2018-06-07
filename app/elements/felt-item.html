@@ -1,0 +1,40 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="felt-icons.html">
+
+<dom-module id="felt-item">
+  <template>
+
+    	<iron-icon icon="[[icon]]"></iron-icon>
+    	<div style="width:40px">[[label]]</div>
+    	<!--<iron-icon icon="a" style$="[[color]]"></iron-icon>-->
+    	<iron-icon icon="felt-icons:expand-more"></iron-icon>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'felt-item',
+
+      properties: {
+
+      	icon: {
+      		type: String
+      	},
+      	color: {
+      		type: String,
+      		value: 'color:black;'
+      	},
+      	label: {
+      		type: String
+      	},
+        selected: Boolean
+      },
+
+      hostAttributes: {
+        tabindex: '0'
+      },
+
+    });
+  </script>
+</dom-module>

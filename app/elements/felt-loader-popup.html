@@ -1,0 +1,124 @@
+
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
+
+<dom-module id="felt-loader-popup">
+
+ 
+  <template>
+
+    <style>
+    :host{
+      --paper-toggle-button-checked-button-color:#FF0000;
+      --paper-toggle-button-checked-bar-color:#FF0000;
+      --paper-toggle-button-checked-ink-color:#FF0000;
+    }
+      #fbshare{
+        color:white;
+        background-color:#3B5998;
+        padding:0px;
+        background: url('/images/facebook1.png') transparent 0px 50% no-repeat;
+        border-radius: 5px;
+      }
+
+      #twshare{
+        color:white;
+        padding:0px;
+        background: url('/images/icn-twitter-32x32.png') transparent 0px 50% no-repeat;
+        border-radius: 5px;
+      }
+      .loaders{
+        width:100%;
+        margin-bottom:12px;
+        text-transform: none;
+      }
+      .loader-icon{
+        margin-right:10px;
+        height:32px;
+        width:32px;
+      }
+      .deleter{
+        margin-top:10px;
+        width:100%;
+      }
+    </style>
+    <style include="iron-flex iron-flex-alignment"></style>
+
+    <paper-button on-tap="load" class="horizontal layout center loaders"><iron-icon icon="felt-icons:cloud-download" class="loader-icon"></iron-icon>Load <span style="font-weight:bold;margin-left:6px;">{{loadDrawing}}</span>
+    </paper-button>
+
+    <paper-button class="horizontal layout center loaders" on-tap="FB"><div class="loader-icon" id="fbshare"></div>Share on Facebook</paper-button>
+
+    <paper-button class="horizontal layout center loaders" on-tap="TW"><div class="loader-icon" id="twshare"></div>Share on Twitter</paper-button>
+
+    <div class="horizontal layout center deleter">
+      <paper-toggle-button id="trasher" on-change="delete_on"></paper-toggle-button>
+      <div>Delete Drawing:</div>
+      <paper-icon-button icon="felt-icons:delete" on-tap="delete" disabled$="{{deleteoff}}"></paper-icon-button>
+    </div>
+
+  </template>
+
+
+  <script>
+
+    Polymer({
+
+      is: 'felt-loader-popup',
+
+      properties: {
+
+        loadDrawing: String,
+
+        loadIndex: Number,
+
+        deleteoff: Boolean
+
+      },
+
+      load: function() {
+        this.$.trasher.checked=false
+        this.deleteoff=true
+        this.fire("popload",this.loadDrawing)
+      },
+
+      delete_on: function() {
+        this.deleteoff = this.$.trasher.checked ? false : true
+      },
+
+      delete: function() {
+        this.$.trasher.checked=false
+        this.deleteoff=true
+        this.fire("delete",{"title":this.loadDrawing,"index":this.loadIndex})
+      },
+
+      ready: function() {
+        this.deleteoff=true
+      },
+
+      FB: function() {
+        /*var urlString=this.uid+'__'+this.sett
+        FB.ui(
+         {
+          method: 'share',
+          href: 'https://beatpush.com/'+urlString
+        }, function(response){});*/
+      },
+
+      TW: function() {
+        /*var urlString='https://beatpush.com/'+this.uid+'__'+this.sett
+
+        window.open("https://twitter.com/share?url="+urlString+"&text=Check out my new beat!","", "width=350, height=450")
+        */
+      }
+
+
+ });
+
+  </script>
+
+</dom-module>
