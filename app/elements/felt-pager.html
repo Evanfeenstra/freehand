@@ -77,7 +77,7 @@
       
       <div style="background-color:#222222;border: 1px solid grey;border-bottom: none;" class="vertical layout start-justified center padd">
         <div style="color:white;width:100%;margin-bottom:6px;text-align:center;">Share this URL to draw with friends:</div>
-        <paper-button style="color:#42A5F5;" on-tap="copytext" id="gentext" class="generated-text">http://freehand.online/<span>{{pageId}}</span></paper-button>
+        <paper-button style="color:#42A5F5;" on-tap="copytext" id="gentext" class="generated-text">https://freehand.online/<span>{{pageId}}</span></paper-button>
         <paper-tooltip animation-delay="0" manual-mode id="texttooltip" position="top" for="gentext" offset="-8">URL Copied!</paper-tooltip>
       </div>
 
@@ -128,7 +128,7 @@
 
       onLoadPage: function(pageId) {
         if (pageId.length>0) {
-            this.url = 'http://' + this.remoteOrigin + '/page/' + pageId;
+            this.url = 'https://' + this.remoteOrigin + '/page/' + pageId;
             this.$.ajax.generateRequest();
           }
       },
