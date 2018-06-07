@@ -163,7 +163,7 @@
       },
 
       openSocket: function() {
-          var url = 'ws://' + this.remoteOrigin + '/page/' + this.pageId + '/ws';
+          var url = 'wss://' + this.remoteOrigin + '/page/' + this.pageId + '/ws';
 
           this.ws = new WebSocket(url);
 
