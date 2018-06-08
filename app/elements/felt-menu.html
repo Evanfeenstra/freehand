@@ -112,10 +112,10 @@
               </paper-tabs>
               <div id="slide1" class="slidey horizontal layout">
                 <div style="padding-left:13px;">
-                  <felt-size initial="27" id="pensize" on-pick="sizeChange"></felt-size>
+                  <felt-size initial="13" id="pensize" on-pick="sizeChange"></felt-size>
                   <felt-color initial-rgb="[[randomRgb1]]" id="pencolor" on-pick="colorChange"></felt-color>
                 </div>
-                <felt-stroke initial-size="6" initial-rgb="[[randomRgb2]]" id="penstroke" on-pick-stroke="strokeChange" on-outline="outlineChange" class="last-sub"></felt-stroke>
+                <felt-stroke initial-size="3" initial-rgb="[[randomRgb2]]" id="penstroke" on-pick-stroke="strokeChange" on-outline="outlineChange" class="last-sub"></felt-stroke>
               </div>
             </div>
         </iron-collapse></div>
@@ -339,7 +339,7 @@
       },
 
       ready: function() {
-        this.size=30;
+        this.size=13;
         this.stroke=this.$.penstroke.stroke;
         this.outline=this.$.penstroke.opened;
 

@@ -72,7 +72,7 @@
               <iron-icon id="forward" class="user-icon" icon="felt-icons:arrow-back" on-tap="_listTapped"></iron-icon>
               <div id="user-main">
                 <iron-icon icon="felt-icons:note-add" class="user-icon" on-tap="newPage"></iron-icon>
-                <iron-icon on-tap="openauth" class="user-icon" icon="felt-icons:account-circle"></iron-icon>
+                <!--<iron-icon on-tap="openauth" class="user-icon" icon="felt-icons:account-circle"></iron-icon>-->
               </div>
             </div>
           </paper-toolbar>
@@ -86,7 +86,7 @@
 
           <paper-drawer-panel id="rightdrawer" drawer-width="[[UserWidth]]" drawer-toggle-attribute="paper-drawer-right" right-drawer disable-swipe force-narrow>
 
-            <paper-header-panel drawer>
+            <!--<paper-header-panel drawer>
               <paper-toolbar>
                 <div class="horizontal layout justified center drawer-icons">
                   <paper-button on-tap="openlogout" class="horizontal layout center" id="avatarz" style$="[[computeAvatarz(userName)]]" disabled="[[!userName]]">
@@ -96,7 +96,7 @@
                 </div>
               </paper-toolbar>
               <felt-auth socket="{{socket}}" user-name="{{userName}}" pic="{{pic}}" class="vertical layout start-justified center" remote-origin="{{remoteOrigin}}" id="authy" on-overwrite="overwrite" on-msg="gotMsg" on-loader="loader" client-origin="{{clientOrigin}}" remote-scheme="{{remoteScheme}}"></felt-auth>
-            </paper-header-panel>
+            </paper-header-panel>-->
             
 
             <paper-header-panel class="content-panel" id="cp" main>
@@ -106,7 +106,7 @@
                   <iron-icon class="user-icon" icon="felt-icons:menu" list-toggle></iron-icon>
                   <div id="user-mobile">
                     <iron-icon icon="felt-icons:note-add" class="user-icon" on-tap="newPage"></iron-icon>
-                    <iron-icon on-tap="openauth" class="user-icon" icon="felt-icons:account-circle"></iron-icon>
+                    <!--<iron-icon on-tap="openauth" class="user-icon" icon="felt-icons:account-circle"></iron-icon>-->
                   </div>
                 </div>
               </paper-toolbar>
@@ -140,7 +140,8 @@
 
         remoteOrigin: {
           type: String,
-          value: "api.freehand.online"
+          //value: "api.freehand.online"
+          value: "agile-chamber-30106.herokuapp.com"
         },
 
         clientOrigin: {
